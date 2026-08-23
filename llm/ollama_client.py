@@ -4,7 +4,7 @@ import requests
 
 OLLAMA_URL = os.getenv(
     "OLLAMA_URL",
-    "http://localhost:11434/api/chat"
+    "https://ollama.com/api/chat"
 )
 
 MODEL_NAME = os.getenv(
@@ -17,27 +17,24 @@ def ask_llm(messages):
 
     payload = {
         "model": MODEL_NAME,
-
         "messages": messages,
-        
-
-        "stream": False 
+        "stream": False
     }
 
+    headers = {
+        "Authorization": f"Bearer {os.getenv('OLLAMA_API_KEY')}"
+    }
 
     response = requests.post(
         OLLAMA_URL,
-        json=payload
+        json=payload,
+        headers=headers
     )
-
 
     response.raise_for_status()
 
-
     result = response.json()
 
-
     answer = result["message"]["content"]
-
 
     return answer
