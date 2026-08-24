@@ -19,6 +19,8 @@ EMBEDDING_MODEL = os.getenv(
 OLLAMA_API_KEY = os.getenv(
     "OLLAMA_API_KEY"
 )
+print("OLLAMA API KEY EXISTS:", bool(OLLAMA_API_KEY))
+print("OLLAMA API KEY LENGTH:", len(OLLAMA_API_KEY) if OLLAMA_API_KEY else 0)
 
 
 # ============================================================
