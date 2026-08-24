@@ -1,10 +1,19 @@
 import requests
 import json
 import re
+import os
 
+OLLAMA_URL = os.getenv(
+    "OLLAMA_URL",
+    "https://ollama.com/api/chat"
+)
 
-OLLAMA_URL = "http://localhost:11434/api/chat"
-MODEL_NAME = "llama3.2"
+MODEL_NAME = os.getenv(
+    "MODEL_NAME",
+    "llama3.2"
+)
+
+OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY")
 
 BUSINESS_FAMILIES = [
     "BEVERAGES",
@@ -150,10 +159,12 @@ USER QUESTION:
     # ========================================================
 
     response = requests.post(
-        OLLAMA_URL,
-        json=payload
-    )
-
+    OLLAMA_URL,
+    json=payload,
+    headers={
+        "Authorization": f"Bearer {OLLAMA_API_KEY}"
+    }
+)
     response.raise_for_status()
 
 
