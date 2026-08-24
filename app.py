@@ -1,6 +1,7 @@
 
 import streamlit as st
 
+from llm.ollama_client import ask_llm
 from llm_tools import extract_forecast_parameters
 
 from llm_sql_tools import (
@@ -1293,23 +1294,34 @@ Result:
 
 
             # ==================================================
-            # UNKNOWN ROUTE
+            # UNKNOWN ROUTE → OLLAMA FALLBACK
             # ==================================================
 
             else:
 
-                answer = """
-I'm not sure how to handle that question yet.
+                answer = ask_llm([
+        {
+                        "role": "system",
+                        "content": """
+            You are an AI Business Intelligence Assistant.
 
-You can ask me about:
+            Answer the user's question clearly and helpfully.
 
-- 📈 Sales forecasting
-- 💰 Historical sales
-- 🏪 Store performance
-- 🛒 Product family sales
-- 📊 Sales visualizations
-- 📚 Company documents and policies
-"""
+            If the question is a general knowledge or business question,
+            answer it normally.
+
+            Do not invent company-specific data.
+            If the user asks for actual company sales, forecasts,
+            stores, product families, or company documents, those
+            questions should normally be handled by the application's
+            business tools or RAG system.
+            """
+             },
+              {
+                  "role": "user",
+                  "content": user_question
+             }
+            ])
 
                 st.markdown(
                     answer
