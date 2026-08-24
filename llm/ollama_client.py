@@ -9,7 +9,7 @@ OLLAMA_URL = os.getenv(
 
 MODEL_NAME = os.getenv(
     "MODEL_NAME",
-    ""gpt-oss:120b""
+    "gpt-oss:120b"
 )
 
 
