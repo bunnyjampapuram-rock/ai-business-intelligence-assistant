@@ -1,26 +1,29 @@
 import os
-import requests
+
+from google import genai
 
 
 # ============================================================
-# OLLAMA CLOUD CONFIGURATION
+# GEMINI EMBEDDING CONFIGURATION
 # ============================================================
 
-OLLAMA_URL = os.getenv(
-    "OLLAMA_EMBED_URL",
-    "https://ollama.com/api/embed"
-)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-EMBEDDING_MODEL = os.getenv(
-    "EMBEDDING_MODEL",
-    "nomic-embed-text"
-)
+EMBEDDING_MODEL = "gemini-embedding-001"
 
-OLLAMA_API_KEY = os.getenv(
-    "OLLAMA_API_KEY"
+
+# ============================================================
+# CREATE GEMINI CLIENT
+# ============================================================
+
+if not GEMINI_API_KEY:
+    raise ValueError(
+        "GEMINI_API_KEY is not configured."
+    )
+
+client = genai.Client(
+    api_key=GEMINI_API_KEY
 )
-print("OLLAMA API KEY EXISTS:", bool(OLLAMA_API_KEY))
-print("OLLAMA API KEY LENGTH:", len(OLLAMA_API_KEY) if OLLAMA_API_KEY else 0)
 
 
 # ============================================================
@@ -29,38 +32,17 @@ print("OLLAMA API KEY LENGTH:", len(OLLAMA_API_KEY) if OLLAMA_API_KEY else 0)
 
 def create_embedding(text):
 
-    if not OLLAMA_API_KEY:
-        raise ValueError(
-            "OLLAMA_API_KEY is not configured."
-        )
-
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": EMBEDDING_MODEL,
-            "input": text
-        },
-        headers={
-            "Authorization": f"Bearer {OLLAMA_API_KEY}"
-        },
-        timeout=60
+    response = client.models.embed_content(
+        model=EMBEDDING_MODEL,
+        contents=text
     )
 
-    response.raise_for_status()
-
-    data = response.json()
-
-    # Ollama Cloud /api/embed returns embeddings
-    # inside the "embeddings" field.
-
-    embeddings = data.get("embeddings")
-
-    if not embeddings:
+    if not response.embeddings:
         raise ValueError(
-            f"No embeddings returned by Ollama: {data}"
+            "No embedding returned by Gemini."
         )
 
-    return embeddings[0]
+    return response.embeddings[0].values
 
 
 # ============================================================
