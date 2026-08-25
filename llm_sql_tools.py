@@ -743,7 +743,7 @@ Rules:
 16. "what about grocery 1"
     -> FAMILY_SALES
     family_name = "GROCERY I"
-    
+
 17. "how much did beverages sell in store 44"
     -> STORE_FAMILY_SALES
     family_name = "BEVERAGES"
@@ -884,11 +884,36 @@ def validate_parameters(parameters):
     # --------------------------------------------------------
     # Validate intent
     # --------------------------------------------------------
+    
 
     if parameters["intent"] not in ALLOWED_INTENTS:
 
         parameters["intent"] = "UNKNOWN"
 
+
+
+
+    # -------------------------------------
+    # family and store intent
+    #----------------------------
+    if parameters["intent"] == "STORE_FAMILY_SALES":
+
+        family_name = parameters.get(
+                    "family_name"
+                )
+        store_number = parameters.get("store_number")
+        
+        if family_name is not None:
+        
+            if family_name not in family_mapping:
+        
+                 raise ValueError(
+                    f"Unknown product family: "
+                            f"{family_name}"
+                  )
+        
+            parameters["store_number"] = store_number
+            parameters["family_name"] = family_name
 
     # --------------------------------------------------------
     # TOP STORE
