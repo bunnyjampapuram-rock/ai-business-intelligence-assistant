@@ -18,6 +18,7 @@ from Tools.sql_tools import (
     get_sales_by_all_families,
     get_monthly_sales,
     get_monthly_sales_by_family,
+    get_sales_by_store_family,
 )
 
 
@@ -679,6 +680,7 @@ STORE_SALES
 FAMILY_SALES
 FAMILY_SALES_ALL
 MONTHLY_SALES
+STORE_FAMILY_SALES
 UNKNOWN
 
 Rules:
