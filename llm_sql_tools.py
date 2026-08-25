@@ -4,7 +4,10 @@ import re
 from llm.ollama_client import ask_llm
 from utils.text_normalizer import normalize_question
 
-from Tools.forecast_tool import df, family_mapping
+from Tools.forecast_tool import (
+    df,
+family_mapping
+)
 
 from Tools.sql_tools import (
     get_total_sales,
