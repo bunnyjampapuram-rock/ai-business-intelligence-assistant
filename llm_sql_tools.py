@@ -1093,13 +1093,12 @@ def execute_sql_intent(parameters):
                 f"{family_name}"
             )
 
-        family_number = family_mapping[
-            family_name
+        
         ]
 
         return get_sales_by_store_family(
             int(store_number),
-            family_number
+            family_name
         )
 
     # ========================================================
