@@ -270,6 +270,21 @@ def get_sales_by_all_stores():
     return result
 
 
+
+# ============================================================
+# SALES BY STORE AND PRODUCT FAMILY
+# ============================================================
+
+def get_sales_by_store_family(store_number, family_name):
+
+    result = df[
+        (df["store_nbr"] == int(store_number)) &
+        (df["family"].str.upper() == family_name.upper())
+    ]["sales"].sum()
+
+    return result
+
+
 # ============================================================
 # SALES BY ALL PRODUCT FAMILIES
 # ============================================================

@@ -146,6 +146,7 @@ def route_question(question):
         # Sales
         "sales",
         "sale",
+        "sell",
         "sold",
         "selling",
         "revenue",

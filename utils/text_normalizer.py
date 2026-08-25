@@ -98,6 +98,7 @@ COMMON_TYPOS = {
     "salees": "sales",
     "saless": "sales",
     "sale": "sales",
+    "sell":"sales",
 
     # Grocery
     "grocry": "grocery",

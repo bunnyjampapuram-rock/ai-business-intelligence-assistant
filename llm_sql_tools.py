@@ -439,6 +439,32 @@ def detect_fast_intent(question):
         }
 
 
+
+
+
+    # ============================================================
+    # STORE + FAMILY SALES
+    # ============================================================
+
+    store_family_patterns = [
+            "how much did",
+            "sales for",
+            "sold in store",
+            "sales in store",
+            "how much sales"
+        ]
+
+    if (
+        any(phrase in q for phrase in store_family_patterns)
+        and "store" in q
+        ):
+            return {
+                "intent": "STORE_FAMILY_SALES",
+                "store_number": None,
+                "family_name": None,
+            }       
+
+
     # ========================================================
     # AVERAGE SALES
     # ========================================================

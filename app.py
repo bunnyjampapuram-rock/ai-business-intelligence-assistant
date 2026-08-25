@@ -714,6 +714,47 @@ if user_question:
 
                     st.bar_chart(top_stores)
 
+
+
+
+
+
+            # ==================================================
+                # STORE + PRODUCT FAMILY SALES
+            # ==================================================
+
+                elif intent == "STORE_FAMILY_SALES":
+
+                    store_number = sql_parameters.get(
+                        "store_number"
+                    )
+
+                    family_name = sql_parameters.get(
+                        "family_name"
+                    )
+
+                    result = get_sales_by_store_family(
+                        store_number,
+                        family_name
+                    )
+
+                    answer = f"""
+                ### 💰 Store & Product Family Sales
+
+                **Store:** {int(store_number)}
+
+                **Product Family:** {family_name}
+
+                **Total Sales:** {float(result):,.2f}
+                """
+
+                    st.markdown(answer)
+
+                    st.metric(
+                        "Total Sales",
+                        f"{float(result):,.2f}"
+                    )
+
                 # ==================================================
                 # TOP FAMILY
                 # ==================================================
