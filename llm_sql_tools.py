@@ -4,7 +4,7 @@ import re
 from llm.ollama_client import ask_llm
 from utils.text_normalizer import normalize_question
 
-from Tools.forecast_tool import family_mapping
+from Tools.forecast_tool import df, family_mapping
 
 from Tools.sql_tools import (
     get_total_sales,
@@ -65,30 +65,23 @@ GENERIC_FAMILY_NAMES = {
 # ============================================================
 
 FAMILY_ALIASES = {
-
-    # Grocery variations
     "GROCERY 1": "GROCERY I",
     "GROCERY 2": "GROCERY II",
-
     "GROCERIES 1": "GROCERY I",
     "GROCERIES 2": "GROCERY II",
-
     "GROCERRY 1": "GROCERY I",
     "GROCERRY 2": "GROCERY II",
-
     "GROCCERY 1": "GROCERY I",
     "GROCCERY 2": "GROCERY II",
 
     "GROCERY I": "GROCERY I",
     "GROCERY II": "GROCERY II",
 
-    # Beverage variations
     "BEVERAGE": "BEVERAGES",
     "BEVAREGES": "BEVERAGES",
     "BEVERAGES": "BEVERAGES",
-    "produce":"PRODUCE",
-    "Produce":"PRODUCE",
 
+    "PRODUCE": "PRODUCE",
 }
 
 
@@ -101,36 +94,21 @@ def normalize_family_name(family_name):
     if family_name is None:
         return None
 
-    family_name = (
-        str(family_name)
-        .upper()
-        .strip()
-    )
+    family_name = str(family_name).upper().strip()
 
-    # Generic words are not specific families
     if family_name in GENERIC_FAMILY_NAMES:
         return None
 
-    # Check aliases
     if family_name in FAMILY_ALIASES:
         family_name = FAMILY_ALIASES[family_name]
-    
 
-    # Exact family name
-    if family_name in family_mapping:
-        return family_name
-
-    # Simple matching
     for real_family in family_mapping.keys():
 
-        real_family_upper = (
-            str(real_family)
-            .upper()
-            .strip()
-        )
-
-        if family_name == real_family_upper:
-            return real_family_upper
+        if (
+            str(real_family).upper().strip()
+            == family_name
+        ):
+            return real_family
 
     return family_name
 
@@ -167,15 +145,12 @@ def extract_store_number(question):
 def find_family_in_question(question):
 
     question_upper = (
-        question
+        str(question)
         .upper()
         .strip()
     )
 
-    # --------------------------------------------------------
     # Check aliases first
-    # --------------------------------------------------------
-
     aliases_sorted = sorted(
         FAMILY_ALIASES.keys(),
         key=len,
@@ -185,13 +160,9 @@ def find_family_in_question(question):
     for alias in aliases_sorted:
 
         if alias in question_upper:
-
             return FAMILY_ALIASES[alias]
 
-    # --------------------------------------------------------
-    # Check real family names
-    # --------------------------------------------------------
-
+    # Check actual family names
     families = sorted(
         family_mapping.keys(),
         key=lambda x: len(str(x)),
@@ -207,8 +178,7 @@ def find_family_in_question(question):
         )
 
         if family_upper in question_upper:
-
-            return family_upper
+            return family
 
     return None
 
@@ -220,7 +190,7 @@ def find_family_in_question(question):
 def detect_fast_intent(question):
 
     q = (
-        question
+        str(question)
         .lower()
         .strip()
     )
@@ -230,7 +200,6 @@ def detect_fast_intent(question):
     # ========================================================
 
     top_store_patterns = [
-
         "which store sold the most",
         "which store sells the most",
         "store sold the most",
@@ -245,136 +214,51 @@ def detect_fast_intent(question):
         "which store has the most sales",
         "which store generated most sales",
         "which store made the most sales",
-        "which store has the highest sales",
-        "which store have the highest sales",
-        "which store has the highest total sales",
-        "what is the highest selling store"
-
     ]
 
     if any(
         phrase in q
         for phrase in top_store_patterns
     ):
-
         return {
             "intent": "TOP_STORE",
             "store_number": None,
             "family_name": None,
         }
 
-
     # ========================================================
     # TOP FAMILY
     # ========================================================
 
     top_family_patterns = [
-    "which product family has the highest sales",
-    "which product family has the highest total sales",
-    "which product family sold the most",
-    "which product family sells the most",
-    "which product has the highest sales",
-    "top product family",
-    "best product family",
-    "highest selling product family",
-    "product family with the highest sales",
-    "product family with the highest total sales",
-    "which family has the highest sales",
-    "which family sold the most",
+        "which product family has the highest sales",
+        "which product family has the highest total sales",
+        "which product family sold the most",
+        "which product family sells the most",
+        "top product family",
+        "best product family",
+        "highest selling product family",
+        "product family with the highest sales",
+        "product family with the highest total sales",
+        "which family has the highest sales",
+        "which family sold the most",
     ]
 
     if any(
         phrase in q
         for phrase in top_family_patterns
     ):
-
         return {
             "intent": "TOP_FAMILY",
             "store_number": None,
             "family_name": None,
         }
 
-
-    # ========================================================
-    # FIND SPECIFIC FAMILY EARLY
-    # ========================================================
-
-    family_name = find_family_in_question(question)
-
-    if family_name is not None:
-
-        # ----------------------------------------------------
-        # Conversational family questions
-        # ----------------------------------------------------
-
-        conversational_family_patterns = [
-
-            "what about",
-            "how about",
-            "tell me about",
-            "what is the sales of",
-            "what are the sales of",
-            "what are the total sales for",
-            "show me sales for",
-            "show me sales of",
-            "what is sales of",
-            "what are sales of",
-            "how much does",
-            "how much has",
-            "what did",
-            "show me",
-            "give me",
-            "tell me",
-        ]
-
-        if any(
-            phrase in q
-            for phrase in conversational_family_patterns
-        ):
-
-            return {
-                "intent": "FAMILY_SALES",
-                "store_number": None,
-                "family_name": family_name,
-            }
-
-        # ----------------------------------------------------
-        # Questions such as:
-        #
-        # beverages?
-        # beverage?
-        # grocery i?
-        # automotive?
-        # ----------------------------------------------------
-
-        cleaned_q = re.sub(
-            r"[^a-zA-Z0-9\s]",
-            "",
-            q
-        ).strip()
-
-        normalized_cleaned = normalize_family_name(
-            cleaned_q
-        )
-
-        if (
-            normalized_cleaned is not None
-            and normalized_cleaned in family_mapping
-        ):
-
-            return {
-                "intent": "FAMILY_SALES",
-                "store_number": None,
-                "family_name": normalized_cleaned,
-            }
-
-
     # ========================================================
     # ALL FAMILIES
     # ========================================================
 
     all_family_patterns = [
-
         "sales for all families",
         "sales for all family",
         "sales by family",
@@ -398,20 +282,17 @@ def detect_fast_intent(question):
         phrase in q
         for phrase in all_family_patterns
     ):
-
         return {
             "intent": "FAMILY_SALES_ALL",
             "store_number": None,
             "family_name": None,
         }
 
-
     # ========================================================
     # MONTHLY SALES
     # ========================================================
 
-    monthly_keywords = [
-
+    monthly_patterns = [
         "monthly sales",
         "month wise sales",
         "month-wise sales",
@@ -426,7 +307,7 @@ def detect_fast_intent(question):
 
     if any(
         phrase in q
-        for phrase in monthly_keywords
+        for phrase in monthly_patterns
     ):
 
         family_name = find_family_in_question(
@@ -439,44 +320,91 @@ def detect_fast_intent(question):
             "family_name": family_name,
         }
 
-
-
-
-
-    # ============================================================
+    # ========================================================
     # STORE + FAMILY SALES
-    # ============================================================
+    # ========================================================
 
-
-    store_family_patterns = [
-            "how much did",
-            "how much sales",
-            "sales in store",
-            "sold in store",
-            "sales for store",
-            "store and product family",
-        
-        ]
+    family_name = find_family_in_question(question)
+    store_number = extract_store_number(question)
 
     if (
-        any(pattern in q for pattern in store_family_patterns)
-        
+        family_name is not None
+        and store_number is not None
+    ):
+
+        store_family_patterns = [
+            "how much",
+            "sales",
+            "sold",
+            "revenue",
+            "performance",
+        ]
+
+        if any(
+            word in q
+            for word in store_family_patterns
         ):
-            family_name=find_family_in_question(question)
-            store_number=extract_store_number(question)
+
             return {
                 "intent": "STORE_FAMILY_SALES",
                 "store_number": store_number,
                 "family_name": family_name,
-            }    
+            }
 
+    # ========================================================
+    # SPECIFIC FAMILY SALES
+    # ========================================================
+
+    if family_name is not None:
+
+        family_patterns = [
+            "sales",
+            "sold",
+            "revenue",
+            "how much",
+            "performance",
+            "what about",
+            "how about",
+            "tell me",
+            "show me",
+            "give me",
+        ]
+
+        if any(
+            word in q
+            for word in family_patterns
+        ):
+
+            return {
+                "intent": "FAMILY_SALES",
+                "store_number": None,
+                "family_name": family_name,
+            }
+
+        # Example: "beverages?"
+        cleaned_q = re.sub(
+            r"[^a-zA-Z0-9\s]",
+            "",
+            q
+        ).strip()
+
+        normalized_family = normalize_family_name(
+            cleaned_q
+        )
+
+        if normalized_family in family_mapping:
+
+            return {
+                "intent": "FAMILY_SALES",
+                "store_number": None,
+                "family_name": normalized_family,
+            }
 
     # ========================================================
     # AVERAGE SALES
     # ========================================================
 
     average_patterns = [
-
         "average sales",
         "avg sales",
         "mean sales",
@@ -488,20 +416,17 @@ def detect_fast_intent(question):
         phrase in q
         for phrase in average_patterns
     ):
-
         return {
             "intent": "AVERAGE_SALES",
             "store_number": None,
             "family_name": None,
         }
 
-
     # ========================================================
     # TOTAL SALES
     # ========================================================
 
     total_patterns = [
-
         "total sales",
         "overall sales",
         "combined sales",
@@ -514,20 +439,17 @@ def detect_fast_intent(question):
         phrase in q
         for phrase in total_patterns
     ):
-
         return {
             "intent": "TOTAL_SALES",
             "store_number": None,
             "family_name": None,
         }
 
-
     # ========================================================
     # MAX SALES
     # ========================================================
 
     max_patterns = [
-
         "maximum sales",
         "max sales",
         "highest sales value",
@@ -541,20 +463,17 @@ def detect_fast_intent(question):
         phrase in q
         for phrase in max_patterns
     ):
-
         return {
             "intent": "MAX_SALES",
             "store_number": None,
             "family_name": None,
         }
 
-
     # ========================================================
     # MIN SALES
     # ========================================================
 
     min_patterns = [
-
         "minimum sales",
         "min sales",
         "lowest sales value",
@@ -568,26 +487,21 @@ def detect_fast_intent(question):
         phrase in q
         for phrase in min_patterns
     ):
-
         return {
             "intent": "MIN_SALES",
             "store_number": None,
             "family_name": None,
         }
 
-
     # ========================================================
     # STORE SALES
     # ========================================================
 
-    store_number = extract_store_number(
-        question
-    )
+    store_number = extract_store_number(question)
 
     if store_number is not None:
 
         store_patterns = [
-
             "sales",
             "sold",
             "revenue",
@@ -605,42 +519,6 @@ def detect_fast_intent(question):
                 "store_number": store_number,
                 "family_name": None,
             }
-
-
-    # ========================================================
-    # FAMILY SALES
-    # ========================================================
-
-    family_name = find_family_in_question(
-        question
-    )
-
-    if family_name is not None:
-
-        family_patterns = [
-
-            "sales",
-            "sold",
-            "revenue",
-            "how much",
-            "performance",
-        ]
-
-        if any(
-            word in q
-            for word in family_patterns
-        ):
-
-            return {
-                "intent": "FAMILY_SALES",
-                "store_number": None,
-                "family_name": family_name,
-            }
-
-
-    # ========================================================
-    # NOTHING DETECTED
-    # ========================================================
 
     return None
 
@@ -773,12 +651,10 @@ User question:
         ]
     )
 
-    print(
-        "OLLAMA SQL RESPONSE:"
-    )
-
+    print("OLLAMA SQL RESPONSE:")
     print(response)
 
+    # Extract JSON safely
     match = re.search(
         r"\{.*\}",
         response,
@@ -786,7 +662,6 @@ User question:
     )
 
     if not match:
-
         raise ValueError(
             "Could not find JSON in Ollama SQL response."
         )
@@ -794,10 +669,7 @@ User question:
     json_text = match.group(0)
 
     try:
-
-        parameters = json.loads(
-            json_text
-        )
+        parameters = json.loads(json_text)
 
     except json.JSONDecodeError as e:
 
@@ -815,6 +687,9 @@ User question:
 
 def validate_parameters(parameters):
 
+    if not isinstance(parameters, dict):
+        parameters = {}
+
     required_fields = [
         "intent",
         "store_number",
@@ -826,25 +701,21 @@ def validate_parameters(parameters):
         if field not in parameters:
             parameters[field] = None
 
-
-    # --------------------------------------------------------
-    # Normalize intent
-    # --------------------------------------------------------
+    # ========================================================
+    # NORMALIZE INTENT
+    # ========================================================
 
     if parameters["intent"] is not None:
 
         parameters["intent"] = (
-            str(
-                parameters["intent"]
-            )
+            str(parameters["intent"])
             .upper()
             .strip()
         )
 
-
-    # --------------------------------------------------------
-    # Normalize store
-    # --------------------------------------------------------
+    # ========================================================
+    # NORMALIZE STORE
+    # ========================================================
 
     store_number = parameters.get(
         "store_number"
@@ -853,7 +724,6 @@ def validate_parameters(parameters):
     if store_number is not None:
 
         try:
-
             parameters["store_number"] = int(
                 store_number
             )
@@ -865,14 +735,11 @@ def validate_parameters(parameters):
 
             parameters["store_number"] = None
 
+    # ========================================================
+    # NORMALIZE FAMILY
+    # ========================================================
 
-    # --------------------------------------------------------
-    # Normalize family
-    # --------------------------------------------------------
-
-    if parameters.get(
-        "family_name"
-    ) is not None:
+    if parameters.get("family_name") is not None:
 
         parameters["family_name"] = (
             normalize_family_name(
@@ -880,85 +747,68 @@ def validate_parameters(parameters):
             )
         )
 
-
-    # --------------------------------------------------------
-    # Validate intent
-    # --------------------------------------------------------
-    
+    # ========================================================
+    # VALIDATE INTENT
+    # ========================================================
 
     if parameters["intent"] not in ALLOWED_INTENTS:
 
         parameters["intent"] = "UNKNOWN"
 
+    intent = parameters["intent"]
 
+    # ========================================================
+    # TOP STORE
+    # ========================================================
 
+    if intent == "TOP_STORE":
 
-    # -------------------------------------
-    # family and store intent
-    #----------------------------
-    if parameters["intent"] == "STORE_FAMILY_SALES":
+        parameters["store_number"] = None
+        parameters["family_name"] = None
+
+    # ========================================================
+    # TOP FAMILY
+    # ========================================================
+
+    elif intent == "TOP_FAMILY":
+
+        parameters["store_number"] = None
+        parameters["family_name"] = None
+
+    # ========================================================
+    # ALL FAMILIES
+    # ========================================================
+
+    elif intent == "FAMILY_SALES_ALL":
+
+        parameters["store_number"] = None
+        parameters["family_name"] = None
+
+    # ========================================================
+    # MONTHLY SALES
+    # ========================================================
+
+    elif intent == "MONTHLY_SALES":
+
+        parameters["store_number"] = None
 
         family_name = parameters.get(
-                    "family_name"
-                )
-        store_number = parameters.get("store_number")
-        
+            "family_name"
+        )
+
         if family_name is not None:
-        
+
             if family_name not in family_mapping:
-        
-                 raise ValueError(
-                    f"Unknown product family: "
-                            f"{family_name}"
-                  )
-        
-            parameters["store_number"] = store_number
-            parameters["family_name"] = family_name
 
-    # --------------------------------------------------------
-    # TOP STORE
-    # --------------------------------------------------------
+                raise ValueError(
+                    f"Unknown product family: {family_name}"
+                )
 
-    if parameters["intent"] == "TOP_STORE":
-
-        parameters["store_number"] = None
-        parameters["family_name"] = None
-
-
-    # --------------------------------------------------------
-    # TOP FAMILY
-    # --------------------------------------------------------
-
-    if parameters["intent"] == "TOP_FAMILY":
-
-        parameters["store_number"] = None
-        parameters["family_name"] = None
-
-
-    # --------------------------------------------------------
-    # FAMILY SALES ALL
-    # --------------------------------------------------------
-
-    if parameters["intent"] == "FAMILY_SALES_ALL":
-
-        parameters["store_number"] = None
-        parameters["family_name"] = None
-
-
-    # --------------------------------------------------------
-    # MONTHLY SALES
-    # --------------------------------------------------------
-
-    if parameters["intent"] == "MONTHLY_SALES":
-
-        parameters["store_number"] = None
-
-
-    # --------------------------------------------------------
+    # ========================================================
     # STORE SALES
-    # --------------------------------------------------------
+    # ========================================================
 
-    if parameters["intent"] == "STORE_SALES":
+    elif intent == "STORE_SALES":
 
         if parameters["store_number"] is None:
 
@@ -966,12 +816,13 @@ def validate_parameters(parameters):
                 "Could not identify the store number."
             )
 
+        parameters["family_name"] = None
 
-    # --------------------------------------------------------
+    # ========================================================
     # FAMILY SALES
-    # --------------------------------------------------------
+    # ========================================================
 
-    if parameters["intent"] == "FAMILY_SALES":
+    elif intent == "FAMILY_SALES":
 
         if parameters["family_name"] is None:
 
@@ -986,26 +837,32 @@ def validate_parameters(parameters):
                 f"{parameters['family_name']}"
             )
 
+        parameters["store_number"] = None
 
-    # --------------------------------------------------------
-    # MONTHLY FAMILY SALES
-    # --------------------------------------------------------
+    # ========================================================
+    # STORE + FAMILY SALES
+    # ========================================================
 
-    if parameters["intent"] == "MONTHLY_SALES":
+    elif intent == "STORE_FAMILY_SALES":
 
-        family_name = parameters.get(
-            "family_name"
-        )
+        if parameters["store_number"] is None:
 
-        if family_name is not None:
+            raise ValueError(
+                "Could not identify the store number."
+            )
 
-            if family_name not in family_mapping:
+        if parameters["family_name"] is None:
 
-                raise ValueError(
-                    f"Unknown product family: "
-                    f"{family_name}"
-                )
+            raise ValueError(
+                "Could not identify the product family."
+            )
 
+        if parameters["family_name"] not in family_mapping:
+
+            raise ValueError(
+                f"Unknown product family: "
+                f"{parameters['family_name']}"
+            )
 
     return parameters
 
@@ -1016,11 +873,11 @@ def validate_parameters(parameters):
 
 def extract_sql_parameters(question):
 
-    # ========================================================
-    # STEP 1: NORMALIZE QUESTION
-    # ========================================================
-
     original_question = question
+
+    # ========================================================
+    # NORMALIZE
+    # ========================================================
 
     try:
 
@@ -1033,33 +890,18 @@ def extract_sql_parameters(question):
         question = original_question
 
     if not question:
-
         question = original_question
 
-    question = str(
-        question
-    ).strip()
+    question = str(question).strip()
 
+    print("ORIGINAL QUESTION:")
+    print(original_question)
 
-    print(
-        "ORIGINAL QUESTION:"
-    )
-
-    print(
-        original_question
-    )
-
-    print(
-        "NORMALIZED QUESTION:"
-    )
-
-    print(
-        question
-    )
-
+    print("NORMALIZED QUESTION:")
+    print(question)
 
     # ========================================================
-    # STEP 2: FAST DETECTION
+    # FAST DETECTION
     # ========================================================
 
     fast_result = detect_fast_intent(
@@ -1068,56 +910,34 @@ def extract_sql_parameters(question):
 
     if fast_result is not None:
 
-        print(
-            "FAST SQL DETECTION:"
-        )
-
-        print(
-            fast_result
-        )
+        print("FAST SQL DETECTION:")
+        print(fast_result)
 
         return validate_parameters(
             fast_result
         )
 
-
     # ========================================================
-    # STEP 3: OLLAMA FALLBACK
+    # OLLAMA FALLBACK
     # ========================================================
 
-    print(
-        "FAST DETECTION FAILED."
-    )
-
-    print(
-        "Calling Ollama..."
-    )
+    print("FAST DETECTION FAILED.")
+    print("Calling Ollama...")
 
     parameters = ask_ollama_for_sql(
         question
     )
 
-
     # ========================================================
-    # STEP 4: VALIDATE
+    # VALIDATE
     # ========================================================
 
     parameters = validate_parameters(
         parameters
     )
 
-
-    # ========================================================
-    # STEP 5: RETURN
-    # ========================================================
-
-    print(
-        "FINAL SQL PARAMETERS:"
-    )
-
-    print(
-        parameters
-    )
+    print("FINAL SQL PARAMETERS:")
+    print(parameters)
 
     return parameters
 
@@ -1128,9 +948,7 @@ def extract_sql_parameters(question):
 
 def execute_sql_intent(parameters):
 
-    intent = parameters.get(
-        "intent"
-    )
+    intent = parameters.get("intent")
 
     store_number = parameters.get(
         "store_number"
@@ -1140,7 +958,6 @@ def execute_sql_intent(parameters):
         "family_name"
     )
 
-
     # ========================================================
     # TOTAL SALES
     # ========================================================
@@ -1148,7 +965,6 @@ def execute_sql_intent(parameters):
     if intent == "TOTAL_SALES":
 
         return get_total_sales()
-
 
     # ========================================================
     # AVERAGE SALES
@@ -1158,7 +974,6 @@ def execute_sql_intent(parameters):
 
         return get_average_sales()
 
-
     # ========================================================
     # MAX SALES
     # ========================================================
@@ -1166,7 +981,6 @@ def execute_sql_intent(parameters):
     elif intent == "MAX_SALES":
 
         return get_max_sales()
-
 
     # ========================================================
     # MIN SALES
@@ -1176,7 +990,6 @@ def execute_sql_intent(parameters):
 
         return get_min_sales()
 
-
     # ========================================================
     # TOP STORE
     # ========================================================
@@ -1185,7 +998,6 @@ def execute_sql_intent(parameters):
 
         return get_top_store()
 
-
     # ========================================================
     # TOP FAMILY
     # ========================================================
@@ -1193,7 +1005,6 @@ def execute_sql_intent(parameters):
     elif intent == "TOP_FAMILY":
 
         return get_top_family()
-
 
     # ========================================================
     # STORE SALES
@@ -1210,7 +1021,6 @@ def execute_sql_intent(parameters):
         return get_sales_by_store(
             int(store_number)
         )
-
 
     # ========================================================
     # FAMILY SALES
@@ -1239,20 +1049,12 @@ def execute_sql_intent(parameters):
             family_name
         ]
 
-        print(
-            "Family name:",
-            family_name
-        )
-
-        print(
-            "Family number:",
-            family_number
-        )
+        print("Family name:", family_name)
+        print("Family number:", family_number)
 
         return get_sales_by_family(
             family_number
         )
-
 
     # ========================================================
     # ALL FAMILY SALES
@@ -1262,32 +1064,23 @@ def execute_sql_intent(parameters):
 
         return get_sales_by_all_families()
 
+    # ========================================================
+    # STORE + FAMILY SALES
+    # ========================================================
+
     elif intent == "STORE_FAMILY_SALES":
-        return get_sales_by_store_family(store_number,family_name)
 
+        if store_number is None:
 
-    # ========================================================
-    # MONTHLY SALES
-    # ========================================================
-
-    elif intent == "MONTHLY_SALES":
-
-        # ----------------------------------------------------
-        # OVERALL MONTHLY SALES
-        # ----------------------------------------------------
+            raise ValueError(
+                "Could not identify the store number."
+            )
 
         if family_name is None:
 
-            print(
-                "Getting overall monthly sales..."
+            raise ValueError(
+                "Could not identify the product family."
             )
-
-            return get_monthly_sales()
-
-
-        # ----------------------------------------------------
-        # FAMILY MONTHLY SALES
-        # ----------------------------------------------------
 
         family_name = normalize_family_name(
             family_name
@@ -1304,20 +1097,41 @@ def execute_sql_intent(parameters):
             family_name
         ]
 
-        print(
-            "Monthly sales family:",
+        return get_sales_by_store_family(
+            int(store_number),
+            family_number
+        )
+
+    # ========================================================
+    # MONTHLY SALES
+    # ========================================================
+
+    elif intent == "MONTHLY_SALES":
+
+        # Overall monthly sales
+        if family_name is None:
+
+            return get_monthly_sales()
+
+        # Family monthly sales
+        family_name = normalize_family_name(
             family_name
         )
 
-        print(
-            "Monthly sales family number:",
-            family_number
-        )
+        if family_name not in family_mapping:
+
+            raise ValueError(
+                f"Unknown product family: "
+                f"{family_name}"
+            )
+
+        family_number = family_mapping[
+            family_name
+        ]
 
         return get_monthly_sales_by_family(
             family_number
         )
-
 
     # ========================================================
     # UNKNOWN
@@ -1328,7 +1142,6 @@ def execute_sql_intent(parameters):
         raise ValueError(
             "I could not understand the SQL question."
         )
-
 
     # ========================================================
     # INVALID INTENT

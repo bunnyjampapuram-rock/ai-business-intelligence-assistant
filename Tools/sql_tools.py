@@ -277,13 +277,21 @@ def get_sales_by_all_stores():
 
 def get_sales_by_store_family(store_number, family_name):
 
+    family_name = str(family_name).upper().strip()
+
+    if family_name not in family_mapping:
+        raise ValueError(
+            f"Unknown product family: {family_name}"
+        )
+
+    family_number = family_mapping[family_name]
+
     result = df[
         (df["store_nbr"] == int(store_number)) &
-        (df["family"].str.upper() == family_name.upper())
+        (df["family"] == family_number)
     ]["sales"].sum()
 
     return result
-
 
 # ============================================================
 # SALES BY ALL PRODUCT FAMILIES
