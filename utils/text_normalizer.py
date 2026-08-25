@@ -111,6 +111,8 @@ COMMON_TYPOS = {
     "bevarages": "beverages",
     "beverageses": "beverages",
     "baverages": "beverages",
+    "produce":"produce",
+    "produce":"produce",
 
     # Store
     "stroe": "store",
