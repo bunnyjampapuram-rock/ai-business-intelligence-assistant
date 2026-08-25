@@ -743,16 +743,21 @@ Rules:
 16. "what about grocery 1"
     -> FAMILY_SALES
     family_name = "GROCERY I"
+    
+17. "how much did beverages sell in store 44"
+    -> STORE_FAMILY_SALES
+    family_name = "BEVERAGES"
+    store_number = 44
 
-17. Generic phrases such as "family", "families",
+18. Generic phrases such as "family", "families",
     "all families", or "product families" are NOT
     specific family names.
 
-18. Return null when a value is not available.
+19. Return null when a value is not available.
 
-19. Do not write explanations.
+20. Do not write explanations.
 
-20. Return ONLY JSON.
+21. Return ONLY JSON.
 
 User question:
 
