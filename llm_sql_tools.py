@@ -269,6 +269,7 @@ def detect_fast_intent(question):
     "which product family has the highest total sales",
     "which product family sold the most",
     "which product family sells the most",
+    "which product has the highest sales"
     "top product family",
     "best product family",
     "highest selling product family",
@@ -1266,4 +1267,4 @@ def execute_sql_intent(parameters):
 
         raise ValueError(
             f"Unsupported SQL intent: {intent}"
-        )
+        ))
