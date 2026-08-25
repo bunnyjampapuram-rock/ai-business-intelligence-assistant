@@ -447,23 +447,28 @@ def detect_fast_intent(question):
     # STORE + FAMILY SALES
     # ============================================================
 
+
     store_family_patterns = [
             "how much did",
-            "sales for",
-            "sold in store",
+            "how much sales",
             "sales in store",
-            "how much sales"
+            "sold in store",
+            "sales for store",
+            "store and product family",
+        
         ]
 
     if (
-        any(phrase in q for phrase in store_family_patterns)
-        and "store" in q
+        any(pattern in q for pattern in store_family_patterns)
+        
         ):
+            family_name=find_family_in_question(question)
+            store_number=extract_store_number(question)
             return {
                 "intent": "STORE_FAMILY_SALES",
-                "store_number": None,
-                "family_name": None,
-            }       
+                "store_number": store_number,
+                "family_name": family_name,
+            }    
 
 
     # ========================================================
