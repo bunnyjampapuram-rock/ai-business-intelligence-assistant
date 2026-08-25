@@ -110,6 +110,7 @@ def normalize_family_name(family_name):
     # Check aliases
     if family_name in FAMILY_ALIASES:
         family_name = FAMILY_ALIASES[family_name]
+    
 
     # Exact family name
     if family_name in family_mapping:
@@ -234,8 +235,17 @@ def detect_fast_intent(question):
         "best performing store",
         "highest selling store",
         "store with the highest sales",
+        "store with the highest total sales",
         "which store performed best",
         "which store has the highest sales",
+        "which store has the most sales",
+        "which store generated most sales",
+        "which store made the most sales",
+        "which store has the highest sales",
+        "which store have the highest sales",
+        "which store has the highest total sales",
+        "what is the highest selling store"
+
     ]
 
     if any(

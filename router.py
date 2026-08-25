@@ -152,6 +152,7 @@ def route_question(question):
 
         # Stores
         "store",
+        "stores",
 
         # Product families
         "family",

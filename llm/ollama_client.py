@@ -37,4 +37,4 @@ def ask_llm(messages):
 
     answer = result["message"]["content"]
 
-    return answer
+    return answer   

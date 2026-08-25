@@ -31,7 +31,7 @@ from rag_embeddings import embed_documents
 from rag_search import search_documents
 from rag_answer import generate_rag_answer
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 # PAGE CONFIGURATION
@@ -689,44 +689,30 @@ if user_question:
 
                 elif intent == "TOP_STORE":
 
-                    store_number, sales = result
+                    store_data = get_sales_by_all_stores()
+
+                    store_number = store_data.index[0]
+                    sales = store_data.iloc[0]
 
                     answer = f"""
-### 🏆 Top Performing Store
+                ### 🏆 Top Performing Store
 
-**Store:** {int(store_number)}
+                **Store:** {int(store_number)}
 
-**Total Sales:** {float(sales):,.2f}
-"""
+                **Total Sales:** {float(sales):,.2f}
+                """
 
-                    st.markdown(
-                        answer
-                    )
+                    st.markdown(answer)
 
-
-                    st.subheader(
-                        "📊 Top Stores by Sales"
-                    )
-
-
-                    store_data = (
-                        get_sales_by_all_stores()
-                    )
-
+                    st.subheader("📊 Top Stores by Sales")
 
                     top_stores = (
                         store_data
                         .head(10)
-                        .sort_values(
-                            ascending=True
-                        )
+                        .sort_values(ascending=True)
                     )
 
-
-                    st.bar_chart(
-                        top_stores
-                    )
-
+                    st.bar_chart(top_stores)
 
                 # ==================================================
                 # TOP FAMILY
@@ -1311,7 +1297,7 @@ Result:
             answer it normally.
 
             Do not invent company-specific data.
-            If the user asks for actual company sales, forecasts,
+            If the user asks for actual sales, forecasts,
             stores, product families, or company documents, those
             questions should normally be handled by the application's
             business tools or RAG system.
@@ -1343,13 +1329,13 @@ Result:
         except Exception as e:
 
             error_message = (
-                "❌ Something went wrong.\n\n"
+                "i could not understand your question.\n\n"
                 f"**Error:** `{str(e)}`"
             )
 
 
             st.error(
-                "❌ Something went wrong."
+                "i could not understand your question."
             )
 
 
