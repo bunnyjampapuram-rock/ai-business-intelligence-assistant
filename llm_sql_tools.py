@@ -1262,6 +1262,9 @@ def execute_sql_intent(parameters):
 
         return get_sales_by_all_families()
 
+    elif intent == "STORE_FAMILY_SALES":
+        return get_sales_by_store_family(store_number,family_name)
+
 
     # ========================================================
     # MONTHLY SALES

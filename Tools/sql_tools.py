@@ -247,7 +247,7 @@ def get_monthly_sales_by_store(
 def get_monthly_sales_by_family(
     family_number
 ):
-
+           
     return get_monthly_sales(
         family_number
     )
