@@ -265,16 +265,17 @@ def detect_fast_intent(question):
     # ========================================================
 
     top_family_patterns = [
-
-        "which family sold the most",
-        "which product family sold the most",
-        "top family",
-        "top product family",
-        "best family",
-        "best product family",
-        "highest selling family",
-        "highest selling product family",
-        "best performing product family",
+    "which product family has the highest sales",
+    "which product family has the highest total sales",
+    "which product family sold the most",
+    "which product family sells the most",
+    "top product family",
+    "best product family",
+    "highest selling product family",
+    "product family with the highest sales",
+    "product family with the highest total sales",
+    "which family has the highest sales",
+    "which family sold the most",
     ]
 
     if any(

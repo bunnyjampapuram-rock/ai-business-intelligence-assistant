@@ -717,33 +717,28 @@ if user_question:
                 # ==================================================
                 # TOP FAMILY
                 # ==================================================
+  
 
                 elif intent == "TOP_FAMILY":
 
-                    family_name, sales = result
+                    family_data = get_sales_by_all_families()
+
+                    family_name = family_data.index[0]
+                    sales = family_data.iloc[0]
 
                     answer = f"""
-### 🏆 Top Product Family
+                ### 🛒 Top Product Family
 
-**Product Family:** {family_name}
+                **Product Family:** {family_name}
 
-**Total Sales:** {float(sales):,.2f}
-"""
+                **Total Sales:** {float(sales):,.2f}
+                """
 
-                    st.markdown(
-                        answer
-                    )
-
+                    st.markdown(answer)
 
                     st.subheader(
-                        "📊 Top Product Families by Sales"
+                        "📊 Product Families by Sales"
                     )
-
-
-                    family_data = (
-                        get_sales_by_all_families()
-                    )
-
 
                     top_families = (
                         family_data
@@ -752,7 +747,6 @@ if user_question:
                             ascending=True
                         )
                     )
-
 
                     st.bar_chart(
                         top_families
