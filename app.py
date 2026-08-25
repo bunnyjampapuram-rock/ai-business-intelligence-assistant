@@ -16,7 +16,8 @@ from Tools.forecast_tool import (
 
 from Tools.sql_tools import (
     get_sales_by_all_stores,
-    get_sales_by_all_families
+    get_sales_by_all_families,
+    get_sales_by_store_family
 )
 
 from router import route_question
