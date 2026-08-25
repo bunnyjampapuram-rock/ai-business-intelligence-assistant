@@ -318,7 +318,6 @@ def detect_fast_intent(question):
             "show me sales of",
             "what is sales of",
             "what are sales of",
-            "how much did",
             "how much does",
             "how much has",
             "what did",
