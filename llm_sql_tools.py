@@ -310,6 +310,7 @@ def detect_fast_intent(question):
             "tell me about",
             "what is the sales of",
             "what are the sales of",
+            "what are the total sales for",
             "what is sales of",
             "what are sales of",
             "how much did",
