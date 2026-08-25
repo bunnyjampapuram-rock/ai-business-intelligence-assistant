@@ -85,7 +85,7 @@ FAMILY_ALIASES = {
     "BEVAREGES": "BEVERAGES",
     "BEVERAGES": "BEVERAGES",
     "produce":"PRODUCE",
-    "Produce":"PRODUCE"
+    "Produce":"PRODUCE",
 
 }
 
