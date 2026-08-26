@@ -19,6 +19,7 @@ from Tools.sql_tools import (
     get_monthly_sales,
     get_monthly_sales_by_family,
     get_sales_by_store_family,
+    get_sales_by_all_stores,
 )
 
 
@@ -38,6 +39,7 @@ ALLOWED_INTENTS = {
     "FAMILY_SALES_ALL",
     "MONTHLY_SALES",
     "STORE_FAMILY_SALES",
+    "STORE_SALES_ALL",
     "UNKNOWN",
 }
 
@@ -253,6 +255,37 @@ def detect_fast_intent(question):
             "store_number": None,
             "family_name": None,
         }
+
+
+
+
+
+    # ========================================================
+        # ALL STORE SALES
+    # ========================================================
+
+    all_store_patterns = [
+    "store wise sales",
+    "store-wise sales",
+    "sales by store",
+    "sales by stores",
+    "sales for all stores",
+    "sales for each store",
+    "sales for every store",
+    "all store sales",
+    "all stores sales",
+    "store wise",
+]
+
+    if any(
+        phrase in q
+        for phrase in all_store_patterns
+    ):
+        return {
+        "intent": "STORE_SALES_ALL",
+        "store_number": None,
+        "family_name": None,
+    }
 
     # ========================================================
     # ALL FAMILIES
@@ -559,6 +592,7 @@ FAMILY_SALES
 FAMILY_SALES_ALL
 MONTHLY_SALES
 STORE_FAMILY_SALES
+STORE_SALES_ALL
 UNKNOWN
 
 Rules:
@@ -598,44 +632,53 @@ Rules:
     -> FAMILY_SALES
     family_name = "BEVERAGES"
 
-11. "how about beverages"
+11. "store wise sales"
+    -> STORE_SALES_ALL
+
+12. "sales by store"
+    -> STORE_SALES_ALL
+
+13. "sales for all stores"
+    -> STORE_SALES_ALL
+
+14. "how about beverages"
     -> FAMILY_SALES
     family_name = "BEVERAGES"
 
-12. "beverages?"
+14. "beverages?"
     -> FAMILY_SALES
     family_name = "BEVERAGES"
 
-13. "bevareges"
+16. "bevareges"
     -> FAMILY_SALES
     family_name = "BEVERAGES"
 
-14. "beverage"
+17. "beverage"
     -> FAMILY_SALES
     family_name = "BEVERAGES"
 
-15. "grocery 1 sales"
+18. "grocery 1 sales"
     -> FAMILY_SALES
     family_name = "GROCERY I"
 
-16. "what about grocery 1"
+19. "what about grocery 1"
     -> FAMILY_SALES
     family_name = "GROCERY I"
 
-17. "how much did beverages sell in store 44"
+20. "how much did beverages sell in store 44"
     -> STORE_FAMILY_SALES
     family_name = "BEVERAGES"
     store_number = 44
 
-18. Generic phrases such as "family", "families",
+21. Generic phrases such as "family", "families",
     "all families", or "product families" are NOT
     specific family names.
 
-19. Return null when a value is not available.
+22. Return null when a value is not available.
 
-20. Do not write explanations.
+23. Do not write explanations.
 
-21. Return ONLY JSON.
+24. Return ONLY JSON.
 
 User question:
 
@@ -735,6 +778,10 @@ def validate_parameters(parameters):
 
             parameters["store_number"] = None
 
+
+
+
+
     # ========================================================
     # NORMALIZE FAMILY
     # ========================================================
@@ -756,6 +803,16 @@ def validate_parameters(parameters):
         parameters["intent"] = "UNKNOWN"
 
     intent = parameters["intent"]
+
+
+
+    # --------------------------------------------------------
+    # ALL STORE SALES
+    # --------------------------------------------------------
+
+    if parameters["intent"] == "STORE_SALES_ALL":
+        parameters["store_number"] = None
+        parameters["family_name"] = None
 
     # ========================================================
     # TOP STORE
@@ -965,6 +1022,16 @@ def execute_sql_intent(parameters):
     if intent == "TOTAL_SALES":
 
         return get_total_sales()
+
+
+
+    # ========================================================
+    # ALL STORE SALES
+    # ========================================================
+
+    elif intent == "STORE_SALES_ALL":
+
+        return get_sales_by_all_stores()
 
     # ========================================================
     # AVERAGE SALES
