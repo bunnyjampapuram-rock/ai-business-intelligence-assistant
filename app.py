@@ -32,7 +32,7 @@ from rag_embeddings import embed_documents
 from rag_search import search_documents
 from rag_answer import generate_rag_answer
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 # PAGE CONFIGURATION
