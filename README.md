@@ -50,7 +50,7 @@ Total Sales: 1,170,688.00
 ## 🌐 Live Demo
 
 🚀 **Streamlit App:**
-Add your deployed Streamlit URL here.
+https://ai-business-intelligence-assistant-7lynbi3ekeo2heyczsdxir.streamlit.app/
 
 🔗 **GitHub Repository:**
 https://github.com/bunnyjampapuram-rock/ai-business-intelligence-assistant
