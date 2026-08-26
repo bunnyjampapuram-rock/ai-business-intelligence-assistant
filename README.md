@@ -1,67 +1,273 @@
 # 🤖 AI Business Intelligence Assistant
 
-An AI-powered Business Intelligence platform that enables users to interact with **business sales data, machine-learning forecasts, and company documents using natural language**.
+An AI-powered Business Intelligence and **Sales Forecasting platform** that enables users to interact with historical sales data, machine-learning forecasts, business analytics, and company documents using natural language.
 
-The application combines:
+The project combines:
 
+* 📈 **XGBoost Sales Forecasting**
 * 🧠 LLM-powered question understanding
 * 🧭 Intelligent intent routing
 * 📊 Business sales analytics
-* 📈 XGBoost sales forecasting
 * 📚 Retrieval-Augmented Generation (RAG)
 * 🔎 Embedding-based semantic search
 * 💬 Conversational parameter collection
 * 🌐 Streamlit deployment
 
-Instead of manually writing SQL queries, navigating dashboards, or searching through documents, users can simply ask questions in natural language.
+The **core machine-learning component is the sales forecasting system**, which uses historical grocery sales data, time-series feature engineering, lag features, rolling features, promotion information, oil-price features, and an XGBoost regression model to forecast future sales.
+
+The forecasting and analytics capabilities are then integrated into a conversational AI interface.
+
+---
+
+# 🌐 Live Demo
+
+🚀 **Streamlit App:**
+
+https://ai-business-intelligence-assistant-7lynbi3ekeo2heyczsdxir.streamlit.app/
+
+🔗 **GitHub Repository:**
+
+https://github.com/bunnyjampapuram-rock/ai-business-intelligence-assistant
+
+---
+
+# 📈 1. AI Sales Forecasting — Core Machine Learning Component
+
+The primary machine-learning component of this project is an **XGBoost-based sales forecasting system** trained on historical grocery sales data.
+
+The system allows users to forecast sales for a specific:
+
+* Store
+* Product family
+* Forecast date
 
 ### Example
 
 ```text
 User:
-How much did beverages sell in store 44?
+
+Predict beverages sales for store 44 on 2017-09-01.
 
         ↓
 
-Question Normalization
+Question Understanding
+
         ↓
-Intent Detection
-        ↓
-STORE_FAMILY_SALES
-        ↓
+
 Store = 44
 Family = BEVERAGES
+Date = 2017-09-01
+
         ↓
-Sales Analytics Tool
+
+Forecast Feature Generation
+
         ↓
-Business Result
+
+XGBoost Model
+
+        ↓
+
+Sales Prediction
+
+        ↓
+
+Predicted Sales
 ```
 
-Example result:
+The forecasting system was designed to generate future predictions using historical sales patterns and engineered temporal, promotional, and external features.
+
+---
+
+# 🧠 2. XGBoost Forecasting Pipeline
+
+The forecasting model was developed using historical grocery sales data.
+
+The complete pipeline is:
 
 ```text
-Store: 44
-Product Family: BEVERAGES
-Total Sales: 1,170,688.00
+Historical Sales Data
+        ↓
+Data Cleaning
+        ↓
+Feature Engineering
+        ↓
+Time-Based Features
+        ↓
+Lag Features
+        ↓
+Rolling Features
+        ↓
+Promotion Features
+        ↓
+Oil-Price Features
+        ↓
+Categorical Features
+        ↓
+Log-Transformed Target
+        ↓
+XGBoost Regression
+        ↓
+Prediction
+        ↓
+Inverse Transformation
+        ↓
+Final Sales Forecast
 ```
 
+### Important Features
+
+```text
+year
+month
+day
+day_of_week
+week
+quarter
+day_of_year
+
+sale_lag_14
+sale_lag_21
+sale_lag_28
+
+sale_roll_7_21
+promo_roll_3
+
+onpromotion
+is_weekend
+
+oil_roll_7
+oil_fwd_1
+oil_fwd_3
+oil_fwd_7
+```
+
+The model uses a **log-transformed sales target** during training and converts predictions back to the original sales scale during inference.
+
 ---
 
-## 🌐 Live Demo
+# 📊 3. Forecast Feature Engineering
 
-🚀 **Streamlit App:**
-https://ai-business-intelligence-assistant-7lynbi3ekeo2heyczsdxir.streamlit.app/
+The forecasting system uses multiple categories of engineered features.
 
-🔗 **GitHub Repository:**
-https://github.com/bunnyjampapuram-rock/ai-business-intelligence-assistant
+### Time-Based Features
+
+```text
+year
+month
+day
+day_of_week
+week
+quarter
+day_of_year
+```
+
+These features allow the model to learn seasonal and calendar-based sales patterns.
+
+### Lag Features
+
+```text
+sale_lag_14
+sale_lag_21
+sale_lag_28
+```
+
+Lag features provide historical sales information from previous time periods.
+
+### Rolling Features
+
+```text
+sale_roll_7_21
+promo_roll_3
+```
+
+Rolling features help capture recent sales and promotion trends.
+
+### Promotion Features
+
+```text
+onpromotion
+promo_roll_3
+```
+
+These features capture the effect of promotions on sales.
+
+### Oil-Price Features
+
+```text
+oil_roll_7
+oil_fwd_1
+oil_fwd_3
+oil_fwd_7
+```
+
+Oil-price information is incorporated as an external feature because changes in oil prices can correlate with economic and transportation conditions.
 
 ---
 
-# 🚀 Key Features
+# 🔮 4. Conversational Sales Forecasting
 
-## 📊 1. Natural-Language Business Analytics
+Users can request predictions using natural language.
 
-Users can ask questions about sales without writing SQL.
+Examples:
+
+```text
+Predict beverages sales for store 44.
+
+Predict Grocery I sales for store 44.
+
+Predict Grocery I sales for store 44 on 2017-09-01.
+```
+
+The forecasting system extracts:
+
+```text
+Store Number
+Product Family
+Forecast Date
+```
+
+If required information is missing, the assistant collects it conversationally.
+
+### Example
+
+```text
+User:
+
+Predict beverages sales.
+
+Assistant:
+
+I need the store number and forecast date.
+
+User:
+
+Store 44 and 2017-09-01.
+
+        ↓
+
+Store = 44
+Family = BEVERAGES
+Date = 2017-09-01
+
+        ↓
+
+XGBoost Forecast
+
+        ↓
+
+Predicted Sales
+```
+
+The application maintains forecasting parameters using **Streamlit session state**, allowing information to be collected across multiple messages.
+
+---
+
+# 🏪 5. Business Sales Analytics
+
+In addition to forecasting, the application provides natural-language business analytics over historical sales data.
+
+Users can ask questions without manually writing SQL queries.
 
 Examples:
 
@@ -91,7 +297,7 @@ The application converts the question into a structured business intent and exec
 
 ---
 
-## 🏪 2. Store-Level Analytics
+# 🏪 6. Store-Level Analytics
 
 The system supports both individual-store analysis and analysis across all stores.
 
@@ -115,33 +321,37 @@ Which store has the highest sales?
 
 The application extracts the store number when required and routes the request to the appropriate sales-analysis tool.
 
-For example:
+Example:
 
 ```text
 User:
+
 How much did store 44 sell?
 
 ↓
 
 Intent:
+
 STORE_SALES
 
 ↓
 
 Store Number:
+
 44
 
 ↓
 
 Sales Tool:
+
 get_sales_by_store(44)
 ```
 
 ---
 
-# 🛒 3. Product-Family Analytics
+# 🛒 7. Product-Family Analytics
 
-The assistant supports both individual product-family analysis and comparison across product families.
+The assistant supports individual product-family analysis and comparison across product families.
 
 Examples:
 
@@ -180,7 +390,7 @@ For example:
 
 ```text
 grocery 1
-     ↓
+    ↓
 GROCERY I
 ```
 
@@ -188,13 +398,13 @@ and:
 
 ```text
 bevareges
-     ↓
+    ↓
 BEVERAGES
 ```
 
 ---
 
-# 🏪 + 🛒 4. Store + Product-Family Analytics
+# 🏪 + 🛒 8. Store + Product-Family Analytics
 
 The application can combine store and product-family parameters in a single natural-language question.
 
@@ -208,16 +418,19 @@ The system extracts:
 
 ```text
 Intent:
+
 STORE_FAMILY_SALES
 
 Store:
+
 44
 
 Product Family:
+
 BEVERAGES
 ```
 
-It then executes the corresponding business function:
+It then executes:
 
 ```text
 get_sales_by_store_family(44, "BEVERAGES")
@@ -235,7 +448,7 @@ This allows users to perform detailed business analysis without manually constru
 
 ---
 
-# 📅 5. Monthly Sales Analytics
+# 📅 9. Monthly Sales Analytics
 
 The application supports overall monthly analysis as well as product-family-specific monthly analysis.
 
@@ -255,6 +468,7 @@ The system detects the monthly-sales intent and optionally extracts the requeste
 
 ```text
 Monthly Sales
+
       │
       ├── Overall Monthly Sales
       │
@@ -263,119 +477,7 @@ Monthly Sales
 
 ---
 
-# 📈 6. AI Sales Forecasting
-
-The forecasting component uses an **XGBoost regression model** trained on historical grocery sales data.
-
-Users can ask:
-
-```text
-Predict beverages sales for store 44.
-
-Predict Grocery I sales for store 44.
-
-Predict Grocery I sales for store 44 on 2017-09-01.
-```
-
-The forecasting system extracts:
-
-```text
-Store Number
-Product Family
-Forecast Date
-```
-
-If information is missing, the assistant collects it conversationally.
-
-### Example
-
-```text
-User:
-Predict beverages sales.
-
-Assistant:
-I need the following information:
-store number and forecast date.
-
-User:
-Store 44 and 2017-09-01.
-
-Assistant:
-Runs the forecast.
-```
-
-The application maintains forecasting parameters using **Streamlit session state**, allowing information to be collected across multiple messages.
-
----
-
-# 🧠 7. XGBoost Forecasting Pipeline
-
-The forecasting model was developed using historical grocery sales data.
-
-The pipeline includes:
-
-```text
-Historical Sales Data
-        ↓
-Data Cleaning
-        ↓
-Feature Engineering
-        ↓
-Time-Based Features
-        ↓
-Lag Features
-        ↓
-Rolling Features
-        ↓
-Promotion Features
-        ↓
-Oil-Price Features
-        ↓
-Categorical Features
-        ↓
-Log-Transformed Target
-        ↓
-XGBoost
-        ↓
-Prediction
-        ↓
-Post-Processing
-        ↓
-Final Sales Forecast
-```
-
-Important features include:
-
-```text
-year
-month
-day
-day_of_week
-week
-quarter
-day_of_year
-
-sale_lag_14
-sale_lag_21
-sale_lag_28
-
-sale_roll_7_21
-promo_roll_3
-
-onpromotion
-is_weekend
-
-oil_roll_7
-oil_fwd_1
-oil_fwd_3
-oil_fwd_7
-```
-
-The model uses a log-transformed sales target during training and converts predictions back to the original sales scale during inference.
-
----
-
-# 🧭 8. Intelligent Question Routing
+# 🧭 10. Intelligent Question Routing
 
 The application uses a multi-stage routing architecture.
 
@@ -386,11 +488,11 @@ The application uses a multi-stage routing architecture.
                     Question Normalization
                               │
                               ▼
-                     Intelligent Router
+                       Intelligent Router
                               │
               ┌───────────────┼───────────────┐
               ▼               ▼               ▼
-           SQL Route      Forecast Route    RAG Route
+           SQL Route     Forecast Route    RAG Route
               │               │               │
               ▼               ▼               ▼
        Intent Detection   Parameter       Document
@@ -400,11 +502,10 @@ The application uses a multi-stage routing architecture.
        Sales Analytics      XGBoost       Embeddings
               │               │               │
               ▼               ▼               ▼
-          Business         Prediction     Relevant
-           Result                          Context
+       Business Result    Prediction     Relevant Context
                                               │
                                               ▼
-                                        LLM Answer
+                                         LLM Answer
               │               │               │
               └───────────────┼───────────────┘
                               ▼
@@ -419,11 +520,11 @@ The router uses:
 4. Deterministic business tools
 5. LLM fallback classification when required
 
-This architecture allows common business questions to be handled quickly while still supporting more flexible natural-language queries.
+This architecture allows common business questions to be handled quickly while supporting more flexible natural-language queries.
 
 ---
 
-# 🧩 9. Structured SQL / Business Intents
+# 🧩 11. Structured Business Intents
 
 The business analytics layer converts natural-language questions into structured intents.
 
@@ -431,17 +532,29 @@ Supported intents include:
 
 ```text
 TOTAL_SALES
+
 AVERAGE_SALES
+
 MAX_SALES
+
 MIN_SALES
+
 TOP_STORE
+
 TOP_FAMILY
+
 STORE_SALES
+
 FAMILY_SALES
+
 FAMILY_SALES_ALL
+
 MONTHLY_SALES
+
 STORE_FAMILY_SALES
+
 STORE_SALES_ALL
+
 UNKNOWN
 ```
 
@@ -469,11 +582,11 @@ This separation between **language understanding** and **business execution** ma
 
 ---
 
-# 🤖 10. LLM Integration
+# 🤖 12. LLM Integration
 
 The application uses **`gpt-oss:120b` served through the Ollama API**.
 
-The current configuration uses:
+Current configuration:
 
 ```text
 OLLAMA_URL=https://ollama.com/api/chat
@@ -510,7 +623,7 @@ This reduces the risk of the model inventing sales values.
 
 ---
 
-# 📚 11. Retrieval-Augmented Generation (RAG)
+# 📚 13. Retrieval-Augmented Generation (RAG)
 
 The assistant can answer questions using company documents.
 
@@ -554,7 +667,7 @@ The assistant therefore grounds document-related answers in retrieved company in
 
 ---
 
-# 🔎 12. Embedding-Based Semantic Search
+# 🔎 14. Embedding-Based Semantic Search
 
 The RAG system represents document chunks as numerical vectors.
 
@@ -580,7 +693,7 @@ This enables semantic retrieval even when the user's wording does not exactly ma
 
 ---
 
-# 🔤 13. Question Normalization
+# 🔤 15. Question Normalization
 
 A normalization layer improves robustness against common variations in user input.
 
@@ -617,7 +730,7 @@ This normalization happens before intent detection and parameter extraction.
 
 ---
 
-# 💬 14. Conversational Parameter Collection
+# 💬 16. Conversational Parameter Collection
 
 Forecasting requests may not contain all required parameters in a single message.
 
@@ -625,6 +738,7 @@ For example:
 
 ```text
 User:
+
 Predict beverages sales.
 ```
 
@@ -632,9 +746,11 @@ The application identifies:
 
 ```text
 Family:
+
 BEVERAGES
 
 Missing:
+
 Store Number
 Forecast Date
 ```
@@ -747,6 +863,7 @@ What employee benefits are provided?
 
 ```text
 ai-business-intelligence-assistant/
+
 │
 ├── app.py
 ├── router.py
@@ -797,17 +914,17 @@ ai-business-intelligence-assistant/
                      Question Normalization
                                 │
                                 ▼
-                        Intelligent Router
+                       Intelligent Router
                                 │
               ┌─────────────────┼─────────────────┐
               ▼                 ▼                 ▼
-           SQL Route       Forecast Route       RAG Route
+          SQL Route        Forecast Route       RAG Route
               │                 │                 │
               ▼                 ▼                 ▼
        Intent Detection   Parameter Extraction  Document Search
               │                 │                 │
               ▼                 ▼                 ▼
-       Store / Family      Store + Family +     Embeddings
+       Store / Family      Store + Family +    Embeddings
           Parameters       Forecast Date           │
               │                 │                 ▼
               ▼                 ▼              Similarity
@@ -831,11 +948,11 @@ ai-business-intelligence-assistant/
 | Technology        | Purpose                                 |
 | ----------------- | --------------------------------------- |
 | Python            | Application development                 |
-| Streamlit         | Web application and chat interface      |
 | Pandas            | Data processing and analytics           |
 | NumPy             | Numerical computation                   |
 | Scikit-learn      | Machine-learning utilities              |
 | XGBoost           | Sales forecasting                       |
+| Streamlit         | Web application and chat interface      |
 | Ollama            | LLM API integration                     |
 | gpt-oss:120b      | LLM reasoning/classification/generation |
 | RAG               | Document question answering             |
@@ -874,11 +991,13 @@ Example:
 
 ```text
 OLLAMA_URL=https://ollama.com/api/chat
+
 MODEL_NAME=gpt-oss:120b
+
 OLLAMA_API_KEY=your_api_key
 ```
 
-The actual API key should never be committed to the repository.
+The actual API key should never be committed to GitHub.
 
 For deployment, configure these values using the hosting platform's **Secrets / Environment Variables** section.
 
@@ -890,6 +1009,7 @@ For deployment, configure these values using the hosting platform's **Secrets / 
 
 ```bash
 git clone https://github.com/bunnyjampapuram-rock/ai-business-intelligence-assistant.git
+
 cd ai-business-intelligence-assistant
 ```
 
@@ -935,7 +1055,7 @@ streamlit run app.py
 
 # 🌐 Deployment
 
-The application is designed to be deployed through a Streamlit-compatible hosting platform.
+The application is deployed through a Streamlit-compatible hosting platform.
 
 Deployment requires:
 
@@ -955,65 +1075,91 @@ After deployment, users can access the application through the public Streamlit 
 
 # 🧪 Example End-to-End Interaction
 
-### Business Analytics
+## 📈 Sales Forecasting
 
 ```text
 User:
-How much did beverages sell in store 44?
 
-System:
-Intent → STORE_FAMILY_SALES
-Store → 44
-Family → BEVERAGES
-
-Business Tool:
-get_sales_by_store_family(44, "BEVERAGES")
-
-Assistant:
-Store: 44
-Product Family: BEVERAGES
-Total Sales: 1,170,688.00
-```
-
-### Forecasting
-
-```text
-User:
 Predict beverages sales.
 
 Assistant:
+
 I need the store number and forecast date.
 
 User:
+
 Store 44 and 2017-09-01.
 
 System:
+
 Store → 44
+
 Family → BEVERAGES
+
 Date → 2017-09-01
 
 System:
+
 XGBoost Forecast
 
 Assistant:
+
 Predicted Sales: ...
 ```
 
-### RAG
+## 📊 Business Analytics
 
 ```text
 User:
+
+How much did beverages sell in store 44?
+
+System:
+
+Intent → STORE_FAMILY_SALES
+
+Store → 44
+
+Family → BEVERAGES
+
+Business Tool:
+
+get_sales_by_store_family(44, "BEVERAGES")
+
+Assistant:
+
+Store: 44
+
+Product Family: BEVERAGES
+
+Total Sales: 1,170,688.00
+```
+
+## 📚 RAG
+
+```text
+User:
+
 How many paid leave days do employees get?
 
 System:
+
 RAG Route
+
     ↓
+
 Document Retrieval
+
     ↓
+
 Relevant Context
+
     ↓
+
 gpt-oss:120b
+
     ↓
+
 Grounded Answer
 ```
 
@@ -1021,10 +1167,15 @@ Grounded Answer
 
 # 🎯 Project Objective
 
-The objective of this project is to demonstrate how **Business Intelligence, Machine Learning, Large Language Models, and Retrieval-Augmented Generation** can be integrated into a single AI-powered application.
+The objective of this project is to demonstrate how **Machine Learning, Business Intelligence, Large Language Models, and Retrieval-Augmented Generation** can be integrated into a single AI-powered application.
 
 The project demonstrates:
 
+* XGBoost sales forecasting
+* Time-series feature engineering
+* Lag and rolling features
+* Promotion and oil-price features
+* Log-transformed target modeling
 * Natural-language business analytics
 * Intelligent question routing
 * Structured intent detection
@@ -1033,9 +1184,7 @@ The project demonstrates:
 * Product-family analysis
 * Store + product-family analysis
 * Monthly sales analysis
-* XGBoost sales forecasting
-* Feature engineering for time-series forecasting
-* Conversational parameter collection
+* Conversational forecasting parameter collection
 * LLM-based fallback classification
 * RAG-based document question answering
 * Embedding-based semantic search
@@ -1077,6 +1226,8 @@ Final Answer
 
 This architecture provides a clear separation between **AI-based language understanding** and **deterministic business execution**.
 
+For forecasting, the LLM does not generate the numerical prediction. Instead, it extracts the required parameters and the **XGBoost model performs the actual prediction**.
+
 ---
 
 # 🔮 Future Improvements
@@ -1101,14 +1252,15 @@ Potential future improvements include:
 ## Bunny Jampapuram
 
 GitHub:
+
 https://github.com/bunnyjampapuram-rock
 
 ---
 
-## ⭐ Project Highlights
+# ⭐ Project Highlights
 
 **AI Business Intelligence Assistant**
 
-**LLM + RAG + XGBoost + Business Analytics + Streamlit**
+**XGBoost Sales Forecasting + LLM + RAG + Business Analytics + Streamlit**
 
-A production-style natural-language business intelligence application that combines **sales analytics, machine-learning forecasting, document retrieval, and LLM-powered question understanding** into a single conversational interface.
+A production-style natural-language business intelligence application centered around **machine-learning sales forecasting**, while integrating **business analytics, document retrieval, semantic search, and LLM-powered question understanding** into a single conversational interface.
