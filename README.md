@@ -44,7 +44,7 @@ https://github.com/bunnyjampapuram-rock/ai-business-intelligence-assistant
 ![monthly_sales](screenshots/Screenshot%20(5).png)
 
 ## store_family_sales_analytics
-![store_family_sales_analytics](screenshot/Screenshot%20(2).png)
+![store_family_sales_analytics](screenshots/Screenshot%20(2).png)
 
 
 
