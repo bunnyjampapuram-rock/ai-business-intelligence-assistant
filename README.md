@@ -34,9 +34,17 @@ https://github.com/bunnyjampapuram-rock/ai-business-intelligence-assistant
 ## Predicting sales 
 ![sales forecast](sreenshots/Screenshot(1).png)
 
+## store wise sales 
+![store wise sales](screenshots/Screenshot%20(3).png)
 
+## family-waise sales
+![family_wise sales](screenshots/Screenshot%20(4).png)
 
+## Monthly_sales
+![monthly_sales](screenshots/Screenshot%20(5).png)
 
+## store_family_sales_analytics
+![store_family_sales_analytics](screenshot/Screenshot(2).png)
 
 
 
