@@ -29,7 +29,17 @@ https://ai-business-intelligence-assistant-7lynbi3ekeo2heyczsdxir.streamlit.app/
 
 https://github.com/bunnyjampapuram-rock/ai-business-intelligence-assistant
 
+
 ---
+## Predicting sales 
+![sales forecast](sreenshots/Screenshot(1).png)
+
+
+
+
+
+
+
 
 # 📈 1. AI Sales Forecasting — Core Machine Learning Component
 
