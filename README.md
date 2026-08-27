@@ -32,7 +32,7 @@ https://github.com/bunnyjampapuram-rock/ai-business-intelligence-assistant
 
 ---
 ## Predicting sales 
-![sales forecast](sreenshots/Screenshot(1).png)
+![sales forecast](screenshots/Screenshot(1).png)
 
 ## store wise sales 
 ![store wise sales](screenshots/Screenshot%20(3).png)
