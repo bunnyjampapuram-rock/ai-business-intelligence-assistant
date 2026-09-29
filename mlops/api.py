@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import mlflow
 import pandas as pd
+from pathlib import Path
 
 
 # =========================================================
@@ -16,15 +17,46 @@ app = FastAPI(
 
 
 # =========================================================
-# MLFLOW CONFIGURATION
+# MLFLOW MODEL CONFIGURATION
 # =========================================================
 
-MODEL_PATH = "mlruns/1/models/m-7bb48d02f1b14b9eb2c0c29bfd766a5a"
+# Project root directory
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-model = mlflow.pyfunc.load_model(MODEL_PATH)
+# Actual MLflow model artifacts directory
+MODEL_PATH = (
+    BASE_DIR
+    / "mlruns"
+    / "1"
+    / "models"
+    / "m-7bb48d02f1b14b9eb2c0c29bfd766a5a"
+    / "artifacts"
+)
+
+# Check that the model directory exists
+if not MODEL_PATH.exists():
+    raise FileNotFoundError(
+        f"MLflow model directory not found: {MODEL_PATH}"
+    )
+
+# Check that MLmodel file exists
+MLMODEL_FILE = MODEL_PATH / "MLmodel"
+
+if not MLMODEL_FILE.exists():
+    raise FileNotFoundError(
+        f"MLmodel file not found: {MLMODEL_FILE}"
+    )
+
+
+# Load MLflow model
+model = mlflow.pyfunc.load_model(
+    MODEL_PATH.as_uri()
+)
+
 
 MODEL_NAME = "AI_BI_Sales_Forecasting_Model"
 MODEL_VERSION = "1"
+
 
 # =========================================================
 # INPUT SCHEMA
@@ -60,7 +92,7 @@ class SalesPredictionRequest(BaseModel):
 
 
 # =========================================================
-# HOME
+# HOME ENDPOINT
 # =========================================================
 
 @app.get("/")
@@ -88,16 +120,21 @@ def health():
 
 
 # =========================================================
-# PREDICTION
+# PREDICTION ENDPOINT
 # =========================================================
 
 @app.post("/predict")
 def predict(request: SalesPredictionRequest):
 
-    input_data = pd.DataFrame([request.model_dump()])
+    # Convert request into DataFrame
+    input_data = pd.DataFrame([
+        request.model_dump()
+    ])
 
+    # Generate prediction
     prediction = model.predict(input_data)
 
+    # Return prediction
     return {
         "predicted_sales": float(prediction[0])
     }
