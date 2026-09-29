@@ -1,0 +1,23 @@
+{
+  "store_nbr": 1,
+  "family": 3,
+  "onpromotion": 11,
+  "is_weekend": 0,
+  "city": 18,
+  "state": 12,
+  "store_type": 3,
+  "cluster": 13,
+  "dcoilwtico": 47.57,
+  "oil_roll_7": 48.35714285714285,
+  "oil_fwd_1": 46.8,
+  "oil_fwd_3": 48.59,
+  "oil_fwd_7": 47.65,
+  "is_holiday": 0,
+  "day": 15,
+  "day_of_week": 1,
+  "is_payday": 1,
+  "sale_lag_21": 2438,
+  "sale_lag_28": 2589,
+  "sale_roll_7_21": 2158.8571428571427,
+  "promo_roll_3": 7
+}

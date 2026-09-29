@@ -1,7 +1,5 @@
-import json
 import re
-
-from llm.ollama_client import ask_llm
+from datetime import datetime, timedelta
 
 
 # ============================================================
@@ -9,31 +7,355 @@ from llm.ollama_client import ask_llm
 # ============================================================
 
 BUSINESS_FAMILIES = [
-    "BEVERAGES",
-    "GROCERY I",
-    "GROCERY II",
-    "DAIRY",
-    "MEATS",
-    "PRODUCE",
-    "SEAFOOD",
-    "POULTRY",
-    "PERSONAL CARE",
-    "PET SUPPLIES",
-    "TOYS",
-    "BOOKS",
-    "BEAUTY",
     "AUTOMOTIVE",
     "BABY CARE",
+    "BEAUTY",
+    "BEVERAGES",
+    "BOOKS",
     "BREAD/BAKERY",
+    "CELEBRATION",
+    "CLEANING",
+    "DAIRY",
     "DELI",
     "EGGS",
     "FROZEN FOODS",
+    "GROCERY I",
+    "GROCERY II",
     "HARDWARE",
+    "HOME AND KITCHEN I",
+    "HOME AND KITCHEN II",
+    "HOME APPLIANCES",
+    "HOME CARE",
     "LADIESWEAR",
+    "LAWN AND GARDEN",
+    "LINGERIE",
     "LIQUOR,WINE,BEER",
-    "PLAY",
+    "MAGAZINES",
+    "MEATS",
+    "PERSONAL CARE",
+    "PET SUPPLIES",
+    "PLAYERS AND ELECTRONICS",
+    "POULTRY",
     "PREPARED FOODS",
+    "PRODUCE",
+    "SCHOOL AND OFFICE SUPPLIES",
+    "SEAFOOD",
 ]
+
+
+# ============================================================
+# DATASET DATE CONFIGURATION
+# ============================================================
+
+LATEST_DATA_DATE = datetime(
+    2017,
+    8,
+    15
+)
+
+
+# ============================================================
+# FAMILY NORMALIZATION
+# ============================================================
+
+def detect_family(question):
+
+    question_upper = str(question).upper().strip()
+
+    # --------------------------------------------------------
+    # GROCERY I
+    # --------------------------------------------------------
+
+    if re.search(
+        r"\bgrocery\s*(?:1|one|i)\b",
+        question_upper
+    ):
+        return "GROCERY I"
+
+    # --------------------------------------------------------
+    # GROCERY II
+    # --------------------------------------------------------
+
+    if re.search(
+        r"\bgrocery\s*(?:2|two|ii)\b",
+        question_upper
+    ):
+        return "GROCERY II"
+
+    # --------------------------------------------------------
+    # DIRECT FAMILY MATCH
+    # --------------------------------------------------------
+
+    # Longest names first so that more specific names
+    # are checked before shorter names.
+
+    for family in sorted(
+        BUSINESS_FAMILIES,
+        key=len,
+        reverse=True
+    ):
+
+        if family in question_upper:
+
+            return family
+
+    # --------------------------------------------------------
+    # COMMON USER VARIATIONS
+    # --------------------------------------------------------
+
+    family_variations = {
+
+        "BREAD": "BREAD/BAKERY",
+
+        "BAKERY": "BREAD/BAKERY",
+
+        "DELICATESSEN": "DELI",
+
+        "LIQUOR": "LIQUOR,WINE,BEER",
+
+        "WINE": "LIQUOR,WINE,BEER",
+
+        "BEER": "LIQUOR,WINE,BEER",
+
+        "PLAY": "PLAYERS AND ELECTRONICS",
+
+        "ELECTRONICS": "PLAYERS AND ELECTRONICS",
+
+        "SCHOOL": "SCHOOL AND OFFICE SUPPLIES",
+
+        "OFFICE": "SCHOOL AND OFFICE SUPPLIES",
+    }
+
+    for keyword, family in family_variations.items():
+
+        if re.search(
+            rf"\b{re.escape(keyword)}\b",
+            question_upper
+        ):
+
+            return family
+
+    return None
+
+
+# ============================================================
+# STORE NUMBER EXTRACTION
+# ============================================================
+
+def detect_store_number(question):
+
+    question = str(question)
+
+    # --------------------------------------------------------
+    # Examples:
+    #
+    # store 44
+    # store number 44
+    # store no 44
+    # store #44
+    # --------------------------------------------------------
+
+    patterns = [
+
+        r"\bstore\s*(?:number|no\.?|#)?\s*(\d+)\b",
+
+    ]
+
+    for pattern in patterns:
+
+        match = re.search(
+            pattern,
+            question,
+            re.IGNORECASE
+        )
+
+        if match:
+
+            return int(
+                match.group(1)
+            )
+
+    return None
+
+
+# ============================================================
+# DATE EXTRACTION
+# ============================================================
+
+def detect_forecast_date(question):
+
+    question = str(question).strip()
+
+    question_lower = question.lower()
+
+
+    # ========================================================
+    # 1. YYYY-MM-DD
+    # ========================================================
+
+    match = re.search(
+        r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b",
+        question
+    )
+
+    if match:
+
+        year = int(match.group(1))
+        month = int(match.group(2))
+        day = int(match.group(3))
+
+        try:
+
+            date_value = datetime(
+                year,
+                month,
+                day
+            )
+
+            return date_value.strftime(
+                "%Y-%m-%d"
+            )
+
+        except ValueError:
+
+            return None
+
+
+    # ========================================================
+    # 2. September 1 2017
+    # 3. September 1, 2017
+    # ========================================================
+
+    month_pattern = (
+        r"\b("
+        r"january|february|march|april|may|june|"
+        r"july|august|september|october|november|december"
+        r")"
+        r"\s+"
+        r"(\d{1,2})"
+        r"(?:st|nd|rd|th)?"
+        r"(?:,\s*|\s+)"
+        r"(\d{4})"
+        r"\b"
+    )
+
+    match = re.search(
+        month_pattern,
+        question_lower,
+        re.IGNORECASE
+    )
+
+    if match:
+
+        month_name = match.group(1)
+        day = int(match.group(2))
+        year = int(match.group(3))
+
+        try:
+
+            date_value = datetime.strptime(
+                f"{month_name} {day} {year}",
+                "%B %d %Y"
+            )
+
+            return date_value.strftime(
+                "%Y-%m-%d"
+            )
+
+        except ValueError:
+
+            return None
+
+
+    # ========================================================
+    # 3. DD/MM/YYYY
+    # ========================================================
+
+    match = re.search(
+        r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b",
+        question
+    )
+
+    if match:
+
+        day = int(match.group(1))
+        month = int(match.group(2))
+        year = int(match.group(3))
+
+        try:
+
+            date_value = datetime(
+                year,
+                month,
+                day
+            )
+
+            return date_value.strftime(
+                "%Y-%m-%d"
+            )
+
+        except ValueError:
+
+            return None
+
+
+    # ========================================================
+    # 4. TODAY
+    # ========================================================
+
+    if re.search(
+        r"\btoday\b",
+        question_lower
+    ):
+
+        return LATEST_DATA_DATE.strftime(
+            "%Y-%m-%d"
+        )
+
+
+    # ========================================================
+    # 5. TOMORROW
+    # ========================================================
+
+    if re.search(
+        r"\btomorrow\b",
+        question_lower
+    ):
+
+        tomorrow = (
+            LATEST_DATA_DATE
+            + timedelta(days=1)
+        )
+
+        return tomorrow.strftime(
+            "%Y-%m-%d"
+        )
+
+
+    # ========================================================
+    # 6. NEXT DAY
+    # ========================================================
+
+    if re.search(
+        r"\bnext\s+day\b",
+        question_lower
+    ):
+
+        next_day = (
+            LATEST_DATA_DATE
+            + timedelta(days=1)
+        )
+
+        return next_day.strftime(
+            "%Y-%m-%d"
+        )
+
+
+    # ========================================================
+    # 7. NO DATE FOUND
+    # ========================================================
+
+    return None
 
 
 # ============================================================
@@ -42,332 +364,104 @@ BUSINESS_FAMILIES = [
 
 def extract_forecast_parameters(question):
 
-    detected_family = None
+    # --------------------------------------------------------
+    # Safety
+    # --------------------------------------------------------
 
-    question_upper = str(question).upper()
+    if question is None:
 
-    # ========================================================
-    # DIRECT FAMILY DETECTION
-    # ========================================================
-
-    for family in BUSINESS_FAMILIES:
-
-        if family in question_upper:
-
-            detected_family = family
-            break
-
-    # Grocery variations
-    if re.search(
-        r"\bgrocery\s*(1|one|i)\b",
-        question_upper
-    ):
-
-        detected_family = "GROCERY I"
-
-    elif re.search(
-        r"\bgrocery\s*(2|two|ii)\b",
-        question_upper
-    ):
-
-        detected_family = "GROCERY II"
-
-
-    # ========================================================
-    # PROMPT
-    # ========================================================
-
-    prompt = f"""
-You are a sales forecasting parameter extraction system.
-
-Extract ONLY information that the user explicitly provides.
-
-We need exactly these three fields:
-
-1. store_number
-2. family_name
-3. forecast_date
-
-
-IMPORTANT RULES:
-
-- NEVER guess a store number.
-- NEVER use today's date.
-
-DATE RULES:
-
-- If the user provides an exact date, convert it to YYYY-MM-DD.
-
-- If the user says "tomorrow", "today", "next day", etc.,
-  do NOT return those words.
-
-- For this sales forecasting dataset,
-  the latest available historical date is 2017-08-15.
-
-Therefore:
-
-"tomorrow" = "2017-08-16"
-
-"next day" = "2017-08-16"
-
-- If the user does not provide any date or relative date,
-  return null.
-
-- NEVER invent an unrelated date.
-
-- If the user does not provide a store number,
-  return null.
-
-- If the user does not provide a product family,
-  return null.
-
-- "grocery 1", "grocery one", and "grocery i"
-  mean "GROCERY I".
-
-- Return ONLY ONE JSON object.
-- Do NOT explain anything.
-- Do NOT return markdown.
-
-
-Example 1:
-
-User:
-
-Predict sales for store 44 GROCERY I on September 1 2017
-
-Output:
-
-{{"store_number":44,"family_name":"GROCERY I","forecast_date":"2017-09-01"}}
-
-
-Example 2:
-
-User:
-
-Predict sales for GROCERY I
-
-Output:
-
-{{"store_number":null,"family_name":"GROCERY I","forecast_date":null}}
-
-
-Example 3:
-
-User:
-
-Predict sales for store 44
-
-Output:
-
-{{"store_number":44,"family_name":null,"forecast_date":null}}
-
-
-Example 4:
-
-User:
-
-Predict sales for grocery 1 on September 1 2017
-
-Output:
-
-{{"store_number":null,"family_name":"GROCERY I","forecast_date":"2017-09-01"}}
-
-
-USER QUESTION:
-
-{question}
-"""
-
-
-    # ========================================================
-    # CALL SHARED OLLAMA CLIENT
-    # ========================================================
-
-    answer = ask_llm([
-        {
-            "role": "user",
-            "content": prompt
+        return {
+            "store_number": None,
+            "family_name": None,
+            "forecast_date": None
         }
-    ])
+
+
+    question = str(
+        question
+    ).strip()
 
 
     # ========================================================
-    # CHECK RESPONSE
+    # DETECT STORE
     # ========================================================
 
-    if not answer:
-
-        raise ValueError(
-            "Ollama returned an empty response."
-        )
-
-
-    answer = str(answer).strip()
-
-
-    # ========================================================
-    # FAMILY MENTION CHECK
-    # ========================================================
-
-    question_lower = str(question).lower()
-
-    family_keywords = [
-        "beverages",
-        "grocery",
-        "automotive",
-        "baby care",
-        "beauty",
-        "books",
-        "bread",
-        "dairy",
-        "delicatessen",
-        "eggs",
-        "frozen foods",
-        "hardware",
-        "home",
-        "ladieswear",
-        "liquor",
-        "meats",
-        "personal care",
-        "pet supplies",
-        "play",
-        "poultry",
-        "prepared foods",
-        "produce",
-        "school and office supplies",
-        "seafood",
-        "toys"
-    ]
-
-
-    family_mentioned = any(
-        family in question_lower
-        for family in family_keywords
+    store_number = detect_store_number(
+        question
     )
 
 
     # ========================================================
-    # DEBUG
+    # DETECT FAMILY
     # ========================================================
 
-    print("\n==============================")
-    print("OLLAMA RESPONSE")
-    print("==============================")
-    print(answer)
-
-
-    # ========================================================
-    # EXTRACT JSON
-    # ========================================================
-
-    match = re.search(
-        r"\{.*?\}",
-        answer,
-        re.DOTALL
+    family_name = detect_family(
+        question
     )
 
 
-    if not match:
-
-        raise ValueError(
-            "Ollama did not return a valid JSON object.\n\n"
-            f"Ollama response:\n{answer}"
-        )
-
-
-    json_text = match.group(0)
-
-
     # ========================================================
-    # PARSE JSON
+    # DETECT DATE
     # ========================================================
 
-    try:
-
-        parameters = json.loads(
-            json_text
-        )
-
-    except json.JSONDecodeError as e:
-
-        raise ValueError(
-            "Could not parse Ollama response as JSON.\n\n"
-            f"Extracted JSON:\n{json_text}"
-        ) from e
-
-
-    # ========================================================
-    # FORCE FAMILY NULL IF NOT MENTIONED
-    # ========================================================
-
-    if not family_mentioned:
-
-        parameters["family_name"] = None
-
-
-    # ========================================================
-    # NORMALIZE FAMILY NAME
-    # ========================================================
-
-    family_name = parameters.get(
-        "family_name"
+    forecast_date = detect_forecast_date(
+        question
     )
 
 
-    if family_name:
+    # ========================================================
+    # CREATE RESULT
+    # ========================================================
 
-        family_name = str(
-            family_name
-        ).upper().strip()
+    parameters = {
 
+        "store_number": store_number,
 
-        if family_name in [
-            "GROCERY 1",
-            "GROCERY ONE",
-            "GROCERY I"
-        ]:
+        "family_name": family_name,
 
-            family_name = "GROCERY I"
+        "forecast_date": forecast_date
 
-
-        elif family_name in [
-            "GROCERY 2",
-            "GROCERY TWO",
-            "GROCERY II"
-        ]:
-
-            family_name = "GROCERY II"
-
-
-        parameters["family_name"] = family_name
+    }
 
 
     # ========================================================
-    # DIRECT FAMILY DETECTION OVERRIDE
+    # DEBUG INFORMATION
     # ========================================================
 
-    if detected_family is not None:
-
-        parameters["family_name"] = detected_family
-
-
-    # ========================================================
-    # ENSURE REQUIRED KEYS EXIST
-    # ========================================================
-
-    parameters.setdefault(
-        "store_number",
-        None
+    print(
+        "\n=============================="
     )
 
-    parameters.setdefault(
-        "family_name",
-        None
+    print(
+        "FORECAST PARAMETER EXTRACTION"
     )
 
-    parameters.setdefault(
-        "forecast_date",
-        None
+    print(
+        "=============================="
+    )
+
+    print(
+        "Question:",
+        question
+    )
+
+    print(
+        "Store:",
+        store_number
+    )
+
+    print(
+        "Family:",
+        family_name
+    )
+
+    print(
+        "Date:",
+        forecast_date
+    )
+
+    print(
+        "==============================\n"
     )
 
 
@@ -375,8 +469,4 @@ USER QUESTION:
     # RETURN
     # ========================================================
 
-    print("\nEXTRACTED PARAMETERS:")
-    print(parameters)
-
     return parameters
-

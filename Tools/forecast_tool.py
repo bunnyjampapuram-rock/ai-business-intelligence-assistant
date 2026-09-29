@@ -1,17 +1,16 @@
-import joblib
 import pandas as pd
 import numpy as np
+import requests
+
+# ============================================================
+# RENDER FASTAPI URL
+# ============================================================
+
+API_URL = "https://ai-business-intelligence-assistant-kx4k.onrender.com/predict"
 
 
 # ============================================================
-# 1. LOAD MODEL
-# ============================================================
-
-model = joblib.load("models/xgb_model.pkl")
-
-
-# ============================================================
-# 2. LOAD DATA
+# LOAD DATA
 # ============================================================
 
 df = pd.read_csv("data/train_cleaned.csv")
@@ -20,7 +19,7 @@ df["date"] = pd.to_datetime(df["date"])
 
 
 # ============================================================
-# 3. FAMILY MAPPING
+# FAMILY MAPPING
 # ============================================================
 
 family_mapping = {
@@ -61,7 +60,7 @@ family_mapping = {
 
 
 # ============================================================
-# 4. FORECAST FUNCTION
+# FORECAST FUNCTION
 # ============================================================
 
 def forecast_sales(store_number, family_name, forecast_date):
@@ -75,6 +74,13 @@ def forecast_sales(store_number, family_name, forecast_date):
     # --------------------------------------------------------
     # Convert family name to number
     # --------------------------------------------------------
+
+    family_name = str(family_name).upper().strip()
+
+    if family_name not in family_mapping:
+        raise ValueError(
+            f"Unknown product family: {family_name}"
+        )
 
     family_number = family_mapping[family_name]
 
@@ -126,12 +132,6 @@ def forecast_sales(store_number, family_name, forecast_date):
         forecast_date.day in [15, 30, 31]
     )
 
-    print("\nDate features:")
-    print("Day:", forecast_row["day"])
-    print("Day of week:", forecast_row["day_of_week"])
-    print("Is weekend:", forecast_row["is_weekend"])
-    print("Is payday:", forecast_row["is_payday"])
-
     # ========================================================
     # LAG 21
     # ========================================================
@@ -148,9 +148,6 @@ def forecast_sales(store_number, family_name, forecast_date):
         sale_lag_21 = 0
 
     forecast_row["sale_lag_21"] = sale_lag_21
-
-    print("\nLag 21 date:", lag_21_date)
-    print("Sale lag 21:", sale_lag_21)
 
     # ========================================================
     # LAG 28
@@ -169,15 +166,11 @@ def forecast_sales(store_number, family_name, forecast_date):
 
     forecast_row["sale_lag_28"] = sale_lag_28
 
-    print("\nLag 28 date:", lag_28_date)
-    print("Sale lag 28:", sale_lag_28)
-
     # ========================================================
-    # ROLLING SALES: sale_roll_7_21
+    # ROLLING SALES
     # ========================================================
 
     roll_start = forecast_date - pd.Timedelta(days=27)
-    
     roll_end = forecast_date - pd.Timedelta(days=21)
 
     rolling_sales = history[
@@ -191,12 +184,6 @@ def forecast_sales(store_number, family_name, forecast_date):
         sale_roll_7_21 = 0
 
     forecast_row["sale_roll_7_21"] = sale_roll_7_21
-
-    print("\nRolling sales:")
-    print("Rolling start:", roll_start)
-    print("Rolling end:", roll_end)
-    print("Rolling rows:", len(rolling_sales))
-    print("Sale roll 7 21:", sale_roll_7_21)
 
     # ========================================================
     # PROMOTION
@@ -215,15 +202,11 @@ def forecast_sales(store_number, family_name, forecast_date):
 
     forecast_row["onpromotion"] = onpromotion
 
-    print("\nPromotion:")
-    print("On promotion:", onpromotion)
-
     # ========================================================
     # PROMOTION ROLLING 3 DAYS
     # ========================================================
 
     promo_start = forecast_date - pd.Timedelta(days=3)
-
     promo_end = forecast_date - pd.Timedelta(days=1)
 
     promo_history = history[
@@ -237,8 +220,6 @@ def forecast_sales(store_number, family_name, forecast_date):
         promo_roll_3 = 0
 
     forecast_row["promo_roll_3"] = promo_roll_3
-
-    print("Promo roll 3:", promo_roll_3)
 
     # ========================================================
     # STORE INFORMATION
@@ -315,43 +296,113 @@ def forecast_sales(store_number, family_name, forecast_date):
     forecast_df = pd.DataFrame([forecast_row])
 
     # ========================================================
-    # GET EXACT MODEL FEATURES
+    # REQUIRED API FEATURES
     # ========================================================
 
-    features = model.feature_names_in_
+    api_features = [
+        "store_nbr",
+        "family",
+        "onpromotion",
+        "is_weekend",
+        "city",
+        "state",
+        "store_type",
+        "cluster",
+        "dcoilwtico",
+        "oil_roll_7",
+        "oil_fwd_1",
+        "oil_fwd_3",
+        "oil_fwd_7",
+        "is_holiday",
+        "day",
+        "day_of_week",
+        "is_payday",
+        "sale_lag_21",
+        "sale_lag_28",
+        "sale_roll_7_21",
+        "promo_roll_3"
+    ]
 
-    X_forecast = forecast_df[features]
+    X_forecast = forecast_df[api_features].fillna(0)
 
     # ========================================================
-    # HANDLE MISSING VALUES
+    # CONVERT TO JSON
     # ========================================================
 
-    X_forecast = X_forecast.fillna(0)
+    payload = X_forecast.iloc[0].to_dict()
 
-    # ========================================================
-    # DISPLAY FEATURES
-    # ========================================================
+    # Convert NumPy values into normal Python values
+    payload = {
+        key: (
+            int(value)
+            if isinstance(value, (np.integer,))
+            else float(value)
+            if isinstance(value, (np.floating,))
+            else value
+        )
+        for key, value in payload.items()
+    }
 
     print("\n==============================")
-    print("FINAL MODEL INPUT")
+    print("SENDING TO PRODUCTION API")
     print("==============================")
 
-    print(X_forecast)
+    print(payload)
 
     # ========================================================
-    # PREDICTION
+    # CALL RENDER FASTAPI
     # ========================================================
-    prediction = model.predict(X_forecast)
 
-    # Convert prediction from log scale
-    # back to original sales scale
-    predicted_sales = np.expm1(prediction[0])
+    try:
+
+        response = requests.post(
+            API_URL,
+            json=payload,
+            timeout=60
+        )
+
+    except requests.exceptions.RequestException as e:
+
+        raise RuntimeError(
+            f"Could not connect to forecasting API: {e}"
+        )
+
+    # ========================================================
+    # CHECK API RESPONSE
+    # ========================================================
+
+    if response.status_code != 200:
+
+        raise RuntimeError(
+            f"Forecast API failed. "
+            f"Status: {response.status_code}. "
+            f"Response: {response.text}"
+        )
+
+    result = response.json()
+
+    # ========================================================
+    # GET PREDICTION
+    # ========================================================
+
+    if "predicted_sales" not in result:
+
+        raise RuntimeError(
+            f"API response does not contain predicted_sales: "
+            f"{result}"
+        )
+
+    predicted_sales = float(
+        result["predicted_sales"]
+    )
 
     print("\n==============================")
-    print("PREDICTION")
+    print("PRODUCTION PREDICTION")
     print("==============================")
 
-    print("Log prediction:", prediction[0])
-    print("Predicted sales:", predicted_sales)
+    print(
+        "Predicted sales:",
+        predicted_sales
+    )
 
     return predicted_sales
