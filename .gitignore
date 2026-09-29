@@ -1,6 +1,28 @@
 venv/
 __pycache__/
 *.pyc
+.git/
+.github/
+.streamlit/
+
+# MLflow local files
+mlflow.db
+mlruns/
+
+# Data
+data/
+*.csv
+*.ipynb
+
+# Local model files
+models/
+
+# Test files
+prediction.json
+
+# Environment/secrets
 .env
-.ipynb_checkpoints/
-data/train_original.csv
+
+# Python cache
+*.pyo
+*.pyd
