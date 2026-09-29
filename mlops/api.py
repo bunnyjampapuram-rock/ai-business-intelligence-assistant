@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel
 import mlflow
 import pandas as pd
@@ -14,6 +15,7 @@ app = FastAPI(
     description="MLOps API for sales forecasting",
     version="1.0"
 )
+Instrumentator().instrument(app).expose(app)
 
 
 # =========================================================
