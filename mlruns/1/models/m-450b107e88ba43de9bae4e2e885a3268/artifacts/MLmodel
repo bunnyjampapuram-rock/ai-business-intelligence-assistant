@@ -1,0 +1,22 @@
+artifact_path: file:///C:/Users/bunny/OneDrive/Pictures/Desktop/AI_BI_PLATFROM/mlruns/1/models/m-450b107e88ba43de9bae4e2e885a3268/artifacts
+flavors:
+  python_function:
+    data: model.ubj
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.xgboost
+    python_version: 3.11.9
+  xgboost:
+    code: null
+    data: model.ubj
+    model_class: xgboost.sklearn.XGBRegressor
+    model_format: ubj
+    xgb_version: 3.2.0
+mlflow_version: 3.16.1
+model_id: m-450b107e88ba43de9bae4e2e885a3268
+model_size_bytes: 15063033
+model_uuid: m-450b107e88ba43de9bae4e2e885a3268
+prompts: null
+run_id: efd14b1953684e89a24a890cf92f21d7
+utc_time_created: '2026-09-24 11:51:01.038062'

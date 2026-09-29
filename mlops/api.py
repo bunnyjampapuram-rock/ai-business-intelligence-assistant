@@ -19,7 +19,7 @@ app = FastAPI(
 # MLFLOW CONFIGURATION
 # =========================================================
 
-MODEL_PATH = "mlruns/1/models/m-7bb48d02f1b14b9eb2c0c29bfd766a5a/artifacts"
+MODEL_PATH = "mlruns/1/models/m-7bb48d02f1b14b9eb2c0c29bfd766a5a"
 
 model = mlflow.pyfunc.load_model(MODEL_PATH)
 
