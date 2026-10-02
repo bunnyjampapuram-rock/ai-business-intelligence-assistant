@@ -1,0 +1,135 @@
+{
+    "timestamp": "2026-10-02T12:56:00.303982",
+    "reference_rows": 155390,
+    "current_rows": 38848,
+    "drift_threshold": 0.05,
+    "overall_status": "DRIFT_DETECTED",
+    "features": [
+        {
+            "feature": "store_nbr",
+            "ks_statistic": 0.006711,
+            "p_value": 0.121164,
+            "status": "NO_DRIFT"
+        },
+        {
+            "feature": "family",
+            "ks_statistic": 0.00027,
+            "p_value": 1.0,
+            "status": "NO_DRIFT"
+        },
+        {
+            "feature": "onpromotion",
+            "ks_statistic": 0.0431,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "is_weekend",
+            "ks_statistic": 0.022939,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "city",
+            "ks_statistic": 0.002375,
+            "p_value": 0.994583,
+            "status": "NO_DRIFT"
+        },
+        {
+            "feature": "state",
+            "ks_statistic": 0.004072,
+            "p_value": 0.67972,
+            "status": "NO_DRIFT"
+        },
+        {
+            "feature": "store_type",
+            "ks_statistic": 0.001275,
+            "p_value": 1.0,
+            "status": "NO_DRIFT"
+        },
+        {
+            "feature": "cluster",
+            "ks_statistic": 0.002879,
+            "p_value": 0.958234,
+            "status": "NO_DRIFT"
+        },
+        {
+            "feature": "dcoilwtico",
+            "ks_statistic": 0.653671,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "oil_roll_7",
+            "ks_statistic": 0.55045,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "oil_fwd_1",
+            "ks_statistic": 0.6078,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "oil_fwd_3",
+            "ks_statistic": 0.6078,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "oil_fwd_7",
+            "ks_statistic": 0.584864,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "is_holiday",
+            "ks_statistic": 0.034403,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "day",
+            "ks_statistic": 0.17201,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "day_of_week",
+            "ks_statistic": 0.022945,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "is_payday",
+            "ks_statistic": 0.022935,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "sale_lag_21",
+            "ks_statistic": 0.009521,
+            "p_value": 0.007104,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "sale_lag_28",
+            "ks_statistic": 0.005243,
+            "p_value": 0.358845,
+            "status": "NO_DRIFT"
+        },
+        {
+            "feature": "sale_roll_7_21",
+            "ks_statistic": 0.01001,
+            "p_value": 0.003918,
+            "status": "DRIFT"
+        },
+        {
+            "feature": "promo_roll_3",
+            "ks_statistic": 0.041368,
+            "p_value": 0.0,
+            "status": "DRIFT"
+        }
+    ]
+}
