@@ -36,6 +36,7 @@ jobs:
           python -m py_compile mlops/train.py
           python -m py_compile mlops/evaluate.py
           python -m py_compile monitoring/drift_check.py
+          python -m py_compile monitoring/retrain_decision.py
 
       - name: Evaluate model
         run: |
@@ -45,15 +46,18 @@ jobs:
         run: |
           python monitoring/drift_check.py
 
+      - name: Run retraining decision
+        run: |
+          python monitoring/retrain_decision.py
+
       - name: Build Docker image
         run: |
           docker build -t ai-bi-forecast-api:latest .
 
+
   docker-push:
 
     needs: test-evaluate-monitor
-
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
 
@@ -70,10 +74,9 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/ai-bi-forecast-api:latest .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/ai-bi-forecast-api:latest .
 
       - name: Push Docker image
         run: |
-          docker push \
-            ${{ secrets.DOCKERHUB_USERNAME }}/ai-bi-forecast-api:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/ai-bi-forecast-api:latest
+
