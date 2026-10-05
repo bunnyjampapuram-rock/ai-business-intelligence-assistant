@@ -1,3 +1,18 @@
+
+
+
+# AI BI — Sales Forecasting & MLOps Platform
+
+## 🚀 Live Demo
+
+**AI BI Assistant:** https://ai-business-intelligence-assistant-7lynbi3ekeo2heyczsdxir.streamlit.app
+
+**MLOps API:** https://ai-business-intelligence-assistant-kx4k.onrender.com
+
+**API Documentation:** https://ai-business-intelligence-assistant-kx4k.onrender.com/docs
+
+Ask the AI BI Assistant about sales, forecasts, and company documents. The MLOps API provides the deployed sales forecasting model.
+
 # AI BI Assistant — Sales Intelligence & Forecasting Platform
 
 An AI-powered business intelligence platform that helps users **understand sales data, get business insights, and forecast future sales**.
@@ -120,10 +135,4 @@ Provides monitoring metrics for Prometheus.
 * Added automated retraining decisions
 * Built a CI/CD pipeline for the ML system
 
-## Live API
 
-https://ai-business-intelligence-assistant-kx4k.onrender.com
-
-## API Documentation
-
-https://ai-business-intelligence-assistant-kx4k.onrender.com/docs
